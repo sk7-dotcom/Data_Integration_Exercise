@@ -1,0 +1,191 @@
+---
+title: "Workshop"
+author: "Meghan Pepler"
+date: "22/03/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document.
+
+```{r}
+#Reads preprocessing: trimming with RBowtie2
+
+if (!requireNamespace("BiocManager", quietly = TRUE))
+  install.packages("BiocManager")
+
+BiocManager::install("Rbowtie2")
+library(Rbowtie2)
+
+setwd("~/Desktop/fastq")
+
+#remove adapter 1 from flag1 file 
+remove_adapters(file1 = "lsr2ChIP_flagged_v1.fastq", adapter1 = "GATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCG", output1 = "flagged1_adapter1")
+#remove adapter 2 and filter sequences less than 30nt 
+remove_adapters(file1 = "flagged1_adapter1", adapter1 = "GATCGGAAGAGCACACGTCTGAACTCCAGTCACCAGATCATCTCGTATGC", output1 = "flagged1_trimmed_filtered.fastq", "--minlength 76")
+
+#repeat for other files, etc, etc 
+remove_adapters(file1 = "lsr2ChIP_flagged_v2.fastq", adapter1 = "GATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCG", output1 = "flagged2_adapter1")
+remove_adapters(file1 = "flagged2_adapter1", adapter1 = "GATCGGAAGAGCACACGTCTGAACTCCAGTCACCAGATCATCTCGTATGC", output1 = "flagged2_trimmed_filtered.fastq","--minlength 76")
+
+remove_adapters(file1 = "lsr2ChIP_unflagged_control1.fastq", adapter1 = "GATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCG", output1 = "unflagged1_adapter1")
+remove_adapters(file1 = "unflagged1_adapter1", adapter1 = "GATCGGAAGAGCACACGTCTGAACTCCAGTCACCAGATCATCTCGTATGC", output1 = "unflagged1_trimmed_filtered.fastq", "--minlength 76")
+
+remove_adapters(file1 = "lsr2ChIP_unflagged_control2.fastq", adapter1 = "GATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCG", output1 = "unflagged2_adapter1")
+remove_adapters(file1 = "unflagged2_adapter1", adapter1 = "GATCGGAAGAGCACACGTCTGAACTCCAGTCACCAGATCATCTCGTATGC", output1 = "unflagged2_trimmed_filtered.fastq", "--minlength 76")
+
+```
+
+
+Once the reads have been trimmed, the next step is to generate quality scores 
+
+
+```{r}
+#FASTQ quality report
+install.packages("fastqcr")
+library("fastqcr")
+fastqc(fq.dir = "/Users/meghanpepler/Desktop/fastq/trimmed", fastqc.path = "/Users/meghanpepler/bin/FastQC/fastqc")
+
+
+```
+
+Given the quality checks out OK, now we can align the reads to the S. venezuelae genome
+
+```{r}
+#Read mapping with RBowtie2
+setwd("~/Desktop/fastq/")
+
+bowtie2_build(references="Sven_genome.fasta", bt2Index = "venezuelae_bowtie", overwrite = TRUE)
+
+bowtie2(bt2Index = "venezuelae_bowtie", 
+        samOutput = "flagged1", 
+        seq1 = "flagged1_trimmed_filtered.fastq", 
+        seq2 = NULL)
+
+bowtie2(bt2Index = "venezuelae_bowtie", 
+        samOutput = "flagged2", 
+        seq1 = "flagged2_trimmed_filtered.fastq", 
+        seq2 = NULL)
+
+bowtie2(bt2Index = "venezuelae_bowtie", 
+        samOutput = "unflagged1", 
+        seq1 = "unflagged1_trimmed_filtered.fastq", 
+        seq2 = NULL)
+
+bowtie2(bt2Index = "venezuelae_bowtie", 
+        samOutput = "unflagged2", 
+        seq1 = "unflagged2_trimmed_filtered.fastq", 
+        seq2 = NULL)
+
+#convert SAM to BAM
+BiocManager::install("Rsamtools")
+library(Rsamtools)
+
+setwd("~/Desktop/fastq/")
+asBam(file = "flagged1", destination = "flagged_v1")
+asBam(file = "flagged2", destination = "flagged_v2")
+asBam(file = "unflagged1", destination = "unflagged_v1")
+asBam(file = "unflagged2", destination = "unflagged_v2")
+
+#add filter/sort step
+
+```
+
+We now have some aligned .bam files. The next step is to call peaks with MACS3. 
+
+```{python}
+conda config --add channels defaults
+conda config --add channels bioconda
+conda config --add channels conda-forge
+
+conda install bwa
+
+#to run MACS3 its recommended you work in a virtual environment so that your home libraries don't get messed up 
+
+python3 -m venv VirtualEnv
+source /Users/meghanpepler/VirtualEnv/bin/activate
+
+#now your command should lead with something like: (VirtualEnv) (base) MeghanMacbookPro:~"
+
+pip install macs3
+
+cd /Users/meghanpepler/Desktop/fastq
+
+#all pairwise peak comparisons
+macs3 callpeak -t flagged_v1.bam -c unflagged_v1.bam -n v1_v1_peaks -g 8e6 --keep-dup all --mfold 2 100 --bw 76 --nomodel --extsize 147
+
+macs3 callpeak -t flagged_v1.bam -c unflagged_v2.bam -n v2_v2_peaks -g 8e6 --keep-dup all --mfold 2 100 --bw 76 --nomodel --extsize 147
+
+macs3 callpeak -t flagged_v2.bam -c unflagged_v1.bam -n v2_v1_peaks -g 8e6 --keep-dup all --mfold 2 100 --bw 76 --nomodel --extsize 147
+
+macs3 callpeak -t flagged_v2.bam -c unflagged_v2.bam -n v2_v2_peaks -g 8e6 --keep-dup all --mfold 2 100 --bw 76 --nomodel --extsize 147
+
+#I also have the bedtools program on my home computer, but this also exists on Brians system I think. You can use it to find the genes that the peaks overlap with: 
+  
+bedtools intersect -a s_venezuelae_simple.gff -b v1_v1_peaks_summits.bed v1_v2_peaks_summits.bed v2_v2_peaks_summits.bed v2_v1_peaks_summits.bed -sorted -wa > peaks_overlapping_features.txt
+
+#that missed 2/3 of the peaks, haha. This function spits out the closest gene. Now this is backwards to the other one (in terms of a and b). If you have it the other way it spits out the closest PEAK to each GENE which is useless and you end up with a list of 7500 genes. You can't have multiple a's so you need to repeat x4
+
+bedtools closest -a v1_v1_peaks_summits.bed -b s_venezuelae_simple.gff -t first -wa > v1v1peaks_closest_features.txt
+
+bedtools closest -a v1_v2_peaks_summits.bed -b s_venezuelae_simple.gff -t first -wa > v1v2peaks_closest_features.txt
+
+bedtools closest -a v2_v1_peaks_summits.bed -b s_venezuelae_simple.gff -t first -wa > v2v1peaks_closest_features.txt
+
+bedtools closest -a v2_v2_peaks_summits.bed -b s_venezuelae_simple.gff -t first -wa > v2v2peaks_closest_features.txt
+
+#now combine htem into one file 
+cat v1v1peaks_closest_features.txt v1v2peaks_closest_features.txt v2v1peaks_closest_features.txt v2v2peaks_closest_features.txt > peaks_closest_combined.txt
+
+#this generates a text file with all of the gene features the peaks (ID'd from the four replicates) are closest to - Repeated for each ID (i.e. if all four pairwise samples had overlapping peaks/gene, it would spit out that gene 4x). I'll just keep genes that were identified at least twice. 
+
+#trim the files so you only have the columns you need 
+cut -f6,9,10,14 peaks_closest_combined.txt > peaks_closest_subset.txt
+
+cut -f1,4,5,9 peaks_overlapping_features.txt > peaks_overlap_subset.txt
+
+#now with the overlap file, you can generate txt file of unique features (peaks only ID'd once).. the closest file wont have any unique genes (duh, they all find whats closest)
+sort peaks_overlap_subset.txt |uniq -u > unique_overlap_features.txt
+
+#sort all features.. v = invert matching (keep ones that DONT match), x = must match entire line, f = matching against file pattern 
+grep -vxf unique_overlap_features.txt peaks_overlap_subset.txt > peaks_overlap_notunique.txt
+
+#now we can remove duplicates from both files to get a clean list of direcrly associated/close to  genes 
+
+sort peaks_closest_subset.txt | uniq > peaks_closest_dedup.txt
+sort peaks_overlap_notunique.txt | uniq > peaks_overlap_dedup.txt
+
+```
+
+```{r}
+setwd("~/Desktop/fastq")
+
+peaks_overlaping_features <- read.delim("peaks_overlap_dedup.txt", header = FALSE)
+
+peaks_closest_features <- read.delim("peaks_closest_dedup.txt", header = FALSE)
+
+library(tidyr)
+tag <- c("tag1", "tag2")
+peaks_closest_features <- separate(peaks_closest_features, 4, tag, sep = ";")
+peaks_overlaping_features <- separate(peaks_overlaping_features, 4, tag, sep = ";")
+
+peaks_overlaping_trim <- peaks_overlaping_features[1:4]
+peaks_closest_trim <- peaks_closest_features[1:4]
+
+cleaned_overalp <- peaks_closest_trim %>%
+  mutate_if(is.character, stringr::str_replace_all, pattern = 'ID=SVEN_', replacement = '')
+
+
+```
+
+
+
+
+
