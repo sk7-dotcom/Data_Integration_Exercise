@@ -9,37 +9,71 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document.
-
 ```{r}
-#Reads preprocessing: trimming with RBowtie2
+#Package Install ----
 
 if (!requireNamespace("BiocManager", quietly = TRUE))
   install.packages("BiocManager")
 
 BiocManager::install("Rbowtie2")
-library(Rbowtie2)
 
-setwd("~/Desktop/fastq")
+install.packages("fastqcr")
+```
+
+
+```{r}
+#Library ----
+
+library(Rbowtie2)
+library("fastqcr")
+
+```
+
+
+
+
+
+
+
+```{r}
+#Reads preprocessing: trimming with RBowtie2
+
+setwd("~/ChIP/raw_data")
 
 #remove adapter 1 from flag1 file 
-remove_adapters(file1 = "lsr2ChIP_flagged_v1.fastq", adapter1 = "GATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCG", output1 = "flagged1_adapter1")
+remove_adapters(file1 = "lsr2ChIP_flagged_v1.fastq", 
+                adapter1 = "GATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCG", 
+                output1 = "~/ChIP/trimmed/flagged1_adapter1")
+
 #remove adapter 2 and filter sequences less than 30nt 
-remove_adapters(file1 = "flagged1_adapter1", adapter1 = "GATCGGAAGAGCACACGTCTGAACTCCAGTCACCAGATCATCTCGTATGC", output1 = "flagged1_trimmed_filtered.fastq", "--minlength 76")
+remove_adapters(file1 = "flagged1_adapter1", 
+                adapter1 = "GATCGGAAGAGCACACGTCTGAACTCCAGTCACCAGATCATCTCGTATGC", 
+                output1 = "~/ChIP/trimmed/flagged1_trimmed_filtered.fastq", "--minlength 76")
 
 #repeat for other files, etc, etc 
-remove_adapters(file1 = "lsr2ChIP_flagged_v2.fastq", adapter1 = "GATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCG", output1 = "flagged2_adapter1")
-remove_adapters(file1 = "flagged2_adapter1", adapter1 = "GATCGGAAGAGCACACGTCTGAACTCCAGTCACCAGATCATCTCGTATGC", output1 = "flagged2_trimmed_filtered.fastq","--minlength 76")
+remove_adapters(file1 = "lsr2ChIP_flagged_v2.fastq", 
+                adapter1 = "GATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCG", 
+                output1 = "~/ChIP/trimmed/flagged2_adapter1")
 
-remove_adapters(file1 = "lsr2ChIP_unflagged_control1.fastq", adapter1 = "GATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCG", output1 = "unflagged1_adapter1")
-remove_adapters(file1 = "unflagged1_adapter1", adapter1 = "GATCGGAAGAGCACACGTCTGAACTCCAGTCACCAGATCATCTCGTATGC", output1 = "unflagged1_trimmed_filtered.fastq", "--minlength 76")
+remove_adapters(file1 = "flagged2_adapter1", 
+                adapter1 = "GATCGGAAGAGCACACGTCTGAACTCCAGTCACCAGATCATCTCGTATGC", 
+                output1 = "~/ChIP/trimmed/flagged2_trimmed_filtered.fastq","--minlength 76")
 
-remove_adapters(file1 = "lsr2ChIP_unflagged_control2.fastq", adapter1 = "GATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCG", output1 = "unflagged2_adapter1")
-remove_adapters(file1 = "unflagged2_adapter1", adapter1 = "GATCGGAAGAGCACACGTCTGAACTCCAGTCACCAGATCATCTCGTATGC", output1 = "unflagged2_trimmed_filtered.fastq", "--minlength 76")
+remove_adapters(file1 = "lsr2ChIP_unflagged_control1.fastq", 
+                adapter1 = "GATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCG", 
+                output1 = "~/ChIP/trimmed/unflagged1_adapter1")
+
+remove_adapters(file1 = "unflagged1_adapter1", 
+                adapter1 = "GATCGGAAGAGCACACGTCTGAACTCCAGTCACCAGATCATCTCGTATGC", 
+                output1 = "~/ChIP/trimmed/unflagged1_trimmed_filtered.fastq", "--minlength 76")
+
+remove_adapters(file1 = "lsr2ChIP_unflagged_control2.fastq", 
+                adapter1 = "GATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCG",
+                output1 = "~/ChIP/trimmed/unflagged2_adapter1")
+
+remove_adapters(file1 = "unflagged2_adapter1", 
+                adapter1 = "GATCGGAAGAGCACACGTCTGAACTCCAGTCACCAGATCATCTCGTATGC", 
+                output1 = "~/ChIP/trimmed/unflagged2_trimmed_filtered.fastq", "--minlength 76")
 
 ```
 
@@ -49,9 +83,10 @@ Once the reads have been trimmed, the next step is to generate quality scores
 
 ```{r}
 #FASTQ quality report
-install.packages("fastqcr")
-library("fastqcr")
-fastqc(fq.dir = "/Users/meghanpepler/Desktop/fastq/trimmed", fastqc.path = "/Users/meghanpepler/bin/FastQC/fastqc")
+
+setwd("~/ChIP/raw_data")
+
+fastqc(fq.dir = "~", fastqc.path = "/fastqc")
 
 
 ```
@@ -60,9 +95,9 @@ Given the quality checks out OK, now we can align the reads to the S. venezuelae
 
 ```{r}
 #Read mapping with RBowtie2
-setwd("~/Desktop/fastq/")
+setwd("~/ChIP/raw_data")
 
-bowtie2_build(references="Sven_genome.fasta", bt2Index = "venezuelae_bowtie", overwrite = TRUE)
+bowtie2_build(references="ref/vnz_chr.fasta", bt2Index = "venezuelae_bowtie", overwrite = TRUE)
 
 bowtie2(bt2Index = "venezuelae_bowtie", 
         samOutput = "flagged1", 
