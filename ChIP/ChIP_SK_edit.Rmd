@@ -1,0 +1,301 @@
+---
+title: "Workshop"
+author: "Meghan Pepler"
+date: "22/03/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+#Package Install ----
+
+if (!requireNamespace("BiocManager", quietly = TRUE))
+  install.packages("BiocManager")
+
+BiocManager::install("Rbowtie2")
+BiocManager::install("Rsamtools")
+
+
+install.packages("fastqcr")
+```
+
+
+```{r}
+#Library ----
+
+setwd("~") # <-- edit this based on the directory of your choice
+
+library(Rbowtie2)
+library("fastqcr") # <--- may not work with windows, multiqc code has been provided.
+library(Rsamtools)
+
+```
+
+To prepare for the data processing make the following empty files in your directory of choice. This will help with naming and future checking in case there are intermediate errors. 
+
+fastqc
+ref
+trimmed
+raw_data
+sam_out
+bam_out
+sort_bam
+filter_bam
+macs_out
+
+### First QC Step 
+
+```{r}
+#FASTQ quality report
+
+fastqc(fq.dir = getwd(), fastqc.path = "/fastqc")
+
+```
+
+Alternatively, if above apporoach does not work, follow the code below in the cluster of your choice. 
+
+```{bash}
+
+scp -r YOUR_FILE_PATH USERNAME@CLUSTER:~/MY_RAW_DATA
+
+multiqc MY_RAW_DATA/
+
+scp -r USERNAME@CLUSTER:~/MY_RAW_DATA/MULTI_QC_OUTPUT .
+
+```
+
+#### Adapter Removal
+
+```{r}
+#Reads preprocessing: trimming with RBowtie2
+
+#remove adapter 1 from flag1 file 
+remove_adapters(file1 = "raw_data/flagged_v1.fastq", 
+                adapter1 = "GATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCG", 
+                output1 = "trimmed/flagged1_adapter1")
+
+#remove adapter 2 and filter sequences less than 30nt 
+remove_adapters(file1 = "trimmed/flagged1_adapter1", 
+                adapter1 = "GATCGGAAGAGCACACGTCTGAACTCCAGTCACCAGATCATCTCGTATGC", 
+                output1 = "trimmed/flagged1_trimmed_filtered.fastq", "--minlength 76")
+
+#repeat for other files, etc, etc 
+remove_adapters(file1 = "raw_data/flagged_v2.fastq", 
+                adapter1 = "GATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCG", 
+                output1 = "trimmed/flagged2_adapter1")
+
+remove_adapters(file1 = "trimmed/flagged2_adapter1", 
+                adapter1 = "GATCGGAAGAGCACACGTCTGAACTCCAGTCACCAGATCATCTCGTATGC", 
+                output1 = "trimmed/flagged2_trimmed_filtered.fastq","--minlength 76")
+
+remove_adapters(file1 = "raw_data/unflagged_control1.fastq", 
+                adapter1 = "GATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCG", 
+                output1 = "trimmed/unflagged1_adapter1")
+
+remove_adapters(file1 = "trimmed/unflagged1_adapter1", 
+                adapter1 = "GATCGGAAGAGCACACGTCTGAACTCCAGTCACCAGATCATCTCGTATGC", 
+                output1 = "trimmed/unflagged1_trimmed_filtered.fastq", "--minlength 76")
+
+remove_adapters(file1 = "raw_data/unflagged_control2.fastq", 
+                adapter1 = "GATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCG",
+                output1 = "trimmed/unflagged2_adapter1")
+
+remove_adapters(file1 = "trimmed/unflagged2_adapter1", 
+                adapter1 = "GATCGGAAGAGCACACGTCTGAACTCCAGTCACCAGATCATCTCGTATGC", 
+                output1 = "trimmed/unflagged2_trimmed_filtered.fastq", "--minlength 76")
+
+```
+
+#### Second QC
+
+Once the reads have been trimmed, the next step is to generate quality scores 
+
+
+```{r}
+#FASTQ quality report
+
+fastqc(fq.dir = getwd(), fastqc.path = "/fastqc")
+
+
+```
+
+Alternatively, if above apporoach does not work, follow the code below in the cluster of your choice. 
+
+```{bash}
+
+scp -r YOUR_FILE_PATH USERNAME@CLUSTER:~/MY_RAW_DATA
+
+multiqc MY_RAW_DATA/
+
+scp -r USERNAME@CLUSTER:~/MY_RAW_DATA/MULTI_QC_OUTPUT .
+
+```
+
+#### Bowtie2 alignment to reference
+
+Given the quality checks out OK, now we can align the reads to the S. venezuelae genome
+
+```{r}
+#Read mapping with RBowtie2
+
+bowtie2_build(references="ref/vnz_chromosome.fasta", bt2Index = "ref/venezuelae_bowtie", overwrite = TRUE)
+
+bowtie2(bt2Index = "ref/venezuelae_bowtie", 
+        samOutput = "sam_out/flagged1", 
+        seq1 = "trimmed/flagged1_trimmed_filtered.fastq", 
+        seq2 = NULL)
+
+bowtie2(bt2Index = "ref/venezuelae_bowtie", 
+        samOutput = "sam_out/flagged2", 
+        seq1 = "trimmed/flagged2_trimmed_filtered.fastq", 
+        seq2 = NULL)
+
+bowtie2(bt2Index = "ref/venezuelae_bowtie", 
+        samOutput = "sam_out/unflagged1", 
+        seq1 = "trimmed/unflagged1_trimmed_filtered.fastq", 
+        seq2 = NULL)
+
+bowtie2(bt2Index = "ref/venezuelae_bowtie", 
+        samOutput = "sam_out/unflagged2", 
+        seq1 = "trimmed/unflagged2_trimmed_filtered.fastq", 
+        seq2 = NULL)
+
+```
+
+```{r}
+#convert SAM to BAM
+
+asBam(file = "sam_out/flagged1", destination = "bam_out/flagged_v1")
+asBam(file = "sam_out/flagged2", destination = "bam_out/flagged_v2")
+asBam(file = "sam_out/unflagged1", destination = "bam_out/unflagged_v1")
+asBam(file = "sam_out/unflagged2", destination = "bam_out/unflagged_v2")
+
+```
+
+```{r}
+#add filter/sort step
+
+sortBam(file = "bam_out/flagged_v1.bam", destination = "sort_bam/flagged_v1")
+sortBam(file = "bam_out/flagged_v2.bam", destination = "sort_bam/flagged_v2")
+sortBam(file = "bam_out/unflagged_v1.bam", destination = "sort_bam/unflagged_v1")
+sortBam(file = "bam_out/unflagged_v2.bam", destination = "sort_bam/unflagged_v2")
+
+indexBam("bam_out/flagged_v1.bam", "sort_bam/flagged_v1")
+indexBam("bam_out/flagged_v2.bam", "sort_bam/flagged_v2")
+indexBam("bam_out/unflagged_v1.bam", "sort_bam/unflagged_v1")
+indexBam("bam_out/unflagged_v2.bam", "sort_bam/unflagged_v2")
+
+filterBam(file = "sort_bam/flagged_v1.bam", destination = "filter_bam/flagged1")
+filterBam(file = "sort_bam/flagged_v2.bam", destination = "filter_bam/flagged2")
+filterBam(file = "sort_bam/unflagged_v1.bam", destination = "filter_bam/unflagged1")
+filterBam(file = "sort_bam/unflagged_v2.bam", destination = "filter_bam/unflagged2")
+```
+
+#### Generating Counts with MACS3
+
+We now have some aligned .bam files. The next step is to call peaks with MACS3. 
+
+In case you have not run python scripts in RStudio before, you will need to install some packages to start. 
+
+```{r}
+#install.packages('reticulate')
+```
+```{python}
+
+conda config --add channels defaults
+conda config --add channels bioconda
+conda config --add channels conda-forge
+
+conda install bwa
+
+#to run MACS3 its recommended you work in a virtual environment so that your home libraries don't get messed up 
+
+python3 -m venv ~/BIOLOGY722/chip/ChIP/VirtualEnv
+source ~/BIOLOGY722/chip/ChIP/VirtualEnvbin/activate
+
+#now your command should lead with something like: (VirtualEnv) (base) MeghanMacbookPro:~"
+
+pip install macs3
+
+cd /Users/meghanpepler/Desktop/fastq
+
+#all pairwise peak comparisons
+macs3 callpeak -t flagged_v1.bam -c unflagged_v1.bam -n v1_v1_peaks -g 8e6 --keep-dup all --mfold 2 100 --bw 76 --nomodel --extsize 147
+
+macs3 callpeak -t flagged_v1.bam -c unflagged_v2.bam -n v2_v2_peaks -g 8e6 --keep-dup all --mfold 2 100 --bw 76 --nomodel --extsize 147
+
+macs3 callpeak -t flagged_v2.bam -c unflagged_v1.bam -n v2_v1_peaks -g 8e6 --keep-dup all --mfold 2 100 --bw 76 --nomodel --extsize 147
+
+macs3 callpeak -t flagged_v2.bam -c unflagged_v2.bam -n v2_v2_peaks -g 8e6 --keep-dup all --mfold 2 100 --bw 76 --nomodel --extsize 147
+
+#I also have the bedtools program on my home computer, but this also exists on Brians system I think. You can use it to find the genes that the peaks overlap with: 
+  
+bedtools intersect -a s_venezuelae_simple.gff -b v1_v1_peaks_summits.bed v1_v2_peaks_summits.bed v2_v2_peaks_summits.bed v2_v1_peaks_summits.bed -sorted -wa > peaks_overlapping_features.txt
+
+#that missed 2/3 of the peaks, haha. This function spits out the closest gene. Now this is backwards to the other one (in terms of a and b). If you have it the other way it spits out the closest PEAK to each GENE which is useless and you end up with a list of 7500 genes. You can't have multiple a's so you need to repeat x4
+
+bedtools closest -a v1_v1_peaks_summits.bed -b s_venezuelae_simple.gff -t first -wa > v1v1peaks_closest_features.txt
+
+bedtools closest -a v1_v2_peaks_summits.bed -b s_venezuelae_simple.gff -t first -wa > v1v2peaks_closest_features.txt
+
+bedtools closest -a v2_v1_peaks_summits.bed -b s_venezuelae_simple.gff -t first -wa > v2v1peaks_closest_features.txt
+
+bedtools closest -a v2_v2_peaks_summits.bed -b s_venezuelae_simple.gff -t first -wa > v2v2peaks_closest_features.txt
+
+```
+
+
+
+
+
+```{bash}
+#now combine htem into one file 
+cat v1v1peaks_closest_features.txt v1v2peaks_closest_features.txt v2v1peaks_closest_features.txt v2v2peaks_closest_features.txt > peaks_closest_combined.txt
+
+#this generates a text file with all of the gene features the peaks (ID'd from the four replicates) are closest to - Repeated for each ID (i.e. if all four pairwise samples had overlapping peaks/gene, it would spit out that gene 4x). I'll just keep genes that were identified at least twice. 
+
+#trim the files so you only have the columns you need 
+cut -f6,9,10,14 peaks_closest_combined.txt > peaks_closest_subset.txt
+
+cut -f1,4,5,9 peaks_overlapping_features.txt > peaks_overlap_subset.txt
+
+#now with the overlap file, you can generate txt file of unique features (peaks only ID'd once).. the closest file wont have any unique genes (duh, they all find whats closest)
+sort peaks_overlap_subset.txt |uniq -u > unique_overlap_features.txt
+
+#sort all features.. v = invert matching (keep ones that DONT match), x = must match entire line, f = matching against file pattern 
+grep -vxf unique_overlap_features.txt peaks_overlap_subset.txt > peaks_overlap_notunique.txt
+
+#now we can remove duplicates from both files to get a clean list of direcrly associated/close to  genes 
+
+sort peaks_closest_subset.txt | uniq > peaks_closest_dedup.txt
+sort peaks_overlap_notunique.txt | uniq > peaks_overlap_dedup.txt
+```
+
+
+```{r}
+
+peaks_overlaping_features <- read.delim("peaks_overlap_dedup.txt", header = FALSE)
+
+peaks_closest_features <- read.delim("peaks_closest_dedup.txt", header = FALSE)
+
+library(tidyr)
+tag <- c("tag1", "tag2")
+peaks_closest_features <- separate(peaks_closest_features, 4, tag, sep = ";")
+peaks_overlaping_features <- separate(peaks_overlaping_features, 4, tag, sep = ";")
+
+peaks_overlaping_trim <- peaks_overlaping_features[1:4]
+peaks_closest_trim <- peaks_closest_features[1:4]
+
+cleaned_overalp <- peaks_closest_trim %>%
+  mutate_if(is.character, stringr::str_replace_all, pattern = 'ID=SVEN_', replacement = '')
+
+
+```
+
+
+
+
+
