@@ -133,7 +133,7 @@ Check the first six rows of the outputed "sorted_counts" using ```head(sorted_co
 # Use featureCounts to count the reads that are mapped to the genomic features and save the results into the variable "sorted_counts"
 sorted_counts <- featureCounts(files=dir(".", "bam$"), annot.ext="s_venezuelae.gff", isGTFAnnotationFile=TRUE, GTF.featureType="gene", GTF.attrType="ID", useMetaFeatures = FALSE)
 
-# Check the structure of "sorted_counts". Read the first six rows.
+# Check the structure of "sorted_counts". Read the first six rows
 head(sorted_counts)
 ```
   
