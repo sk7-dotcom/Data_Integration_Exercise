@@ -78,7 +78,7 @@ files <- c("T3d3225v1.sorted.bam", "T3d3225v2.sorted.bam", "T3WTv1.sorted.bam", 
 
 genotype <- c("mutant", "mutant", "wildtype", "wildtype") # <-  Create a vector called, "genotype", containing the corresponding genotypes of the above .bam files (will be column two) 
 
-coldata <- data.frame(files, genotype) #<- Create the data frame "coldata"
+coldata <- data.frame(files, genotype) # <- Create the data frame "coldata"
 ```
 
 
