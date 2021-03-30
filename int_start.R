@@ -1,9 +1,14 @@
 #Data Integration
 
+# Packages to install ----
+
+BiocManager::install("igvR")
+
 #Packages used: ----
 library(tidyverse)
 library(eulerr)
 library(VennDiagram)
+library(igvR)
 
 #Datasets: ----
 RNA_dat <- read.csv('RNA-seq/mutant_versus_wildtype_gene_expression_data.csv')
