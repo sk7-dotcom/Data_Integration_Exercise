@@ -1,0 +1,312 @@
+---
+title: "ChIP_Markdown_Mar29"
+author: "Meghan Pepler"
+date: "29/03/2021"
+output: html_document
+---
+
+---
+title: "Workshop"
+author: "Meghan Pepler"
+date: "22/03/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+#Package Install ----
+
+if (!requireNamespace("BiocManager", quietly = TRUE))
+  install.packages("BiocManager")
+
+BiocManager::install("Rbowtie2")
+BiocManager::install("Rsamtools")
+
+
+install.packages("fastqcr")
+```
+
+
+```{r}
+#Library ----
+
+setwd("~") # <-- edit this based on the directory of your choice
+#for meghan: setwd("~/Documents/Bioinfo722/Data_Integration_Exercise/ChIP")
+
+
+library(Rbowtie2)
+library("fastqcr") # <--- may not work with windows, multiqc code has been provided.
+library(Rsamtools)
+
+```
+
+To prepare for the data processing make the following empty files in your directory of choice. This will help with naming and future checking in case there are intermediate errors. 
+
+fastQC_out
+ref
+trimmed
+raw_data
+sam_out
+bam_out
+sort_bam
+filter_bam
+MACS3
+
+### First QC Step 
+
+```{r}
+#FASTQ quality report
+
+#If you have a unix system, you can install th fastqc program to your working directory (replace the path with whatever you want it to be for you)
+fastqc_install(url, dest.dir = "~/Documents/Bioinfo722/Data_Integration_Exercise/ChIP/")
+
+#This makes a folder in your working directory called FastQC that contains all the program/code information to run FastQC on any files you want
+
+fastqc(fq.dir = "raw_data/", qc.dir = "fastQC_out", fastqc.path = "FastQC/fastqc")
+
+```
+
+Alternatively, if above apporoach does not work, follow the code below in the cluster of your choice. 
+
+```{bash}
+
+scp -r YOUR_FILE_PATH USERNAME@CLUSTER:~/MY_RAW_DATA
+
+multiqc MY_RAW_DATA/
+
+scp -r USERNAME@CLUSTER:~/MY_RAW_DATA/MULTI_QC_OUTPUT .
+
+```
+
+#### Adapter Removal
+
+```{r}
+#Reads preprocessing: trimming with RBowtie2
+
+#remove adapter 1 from flag1 file 
+remove_adapters(file1 = "raw_data/flagged_v1.fastq", 
+                adapter1 = "GATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCG", 
+                output1 = "trimmed/flagged1_adapter1")
+
+#remove adapter 2 and filter sequences less than 30nt 
+remove_adapters(file1 = "trimmed/flagged1_adapter1", 
+                adapter1 = "GATCGGAAGAGCACACGTCTGAACTCCAGTCACCAGATCATCTCGTATGC", 
+                output1 = "trimmed/flagged1_trimmed_filtered.fastq", "--minlength 76")
+
+#repeat for other files, etc, etc 
+remove_adapters(file1 = "raw_data/flagged_v2.fastq", 
+                adapter1 = "GATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCG", 
+                output1 = "trimmed/flagged2_adapter1")
+
+remove_adapters(file1 = "trimmed/flagged2_adapter1", 
+                adapter1 = "GATCGGAAGAGCACACGTCTGAACTCCAGTCACCAGATCATCTCGTATGC", 
+                output1 = "trimmed/flagged2_trimmed_filtered.fastq","--minlength 76")
+
+remove_adapters(file1 = "raw_data/unflagged_control1.fastq", 
+                adapter1 = "GATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCG", 
+                output1 = "trimmed/unflagged1_adapter1")
+
+remove_adapters(file1 = "trimmed/unflagged1_adapter1", 
+                adapter1 = "GATCGGAAGAGCACACGTCTGAACTCCAGTCACCAGATCATCTCGTATGC", 
+                output1 = "trimmed/unflagged1_trimmed_filtered.fastq", "--minlength 76")
+
+remove_adapters(file1 = "raw_data/unflagged_control2.fastq", 
+                adapter1 = "GATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCG",
+                output1 = "trimmed/unflagged2_adapter1")
+
+remove_adapters(file1 = "trimmed/unflagged2_adapter1", 
+                adapter1 = "GATCGGAAGAGCACACGTCTGAACTCCAGTCACCAGATCATCTCGTATGC", 
+                output1 = "trimmed/unflagged2_trimmed_filtered.fastq", "--minlength 76")
+
+```
+
+#### Second QC
+
+Once the reads have been trimmed, the next step is to generate quality scores 
+
+
+```{r}
+#FASTQ quality report
+
+fastqc(fq.dir = "trimmed/", qc.dir = "fastQC_out/" fastqc.path = "FastQC/fastqc")
+
+#this runs on fastqc on all of the fastq filed in our "trimmed" folder
+```
+
+Alternatively, if above apporoach does not work, follow the code below in the cluster of your choice. 
+
+```{bash}
+
+scp -r YOUR_FILE_PATH USERNAME@CLUSTER:~/MY_RAW_DATA
+
+multiqc MY_RAW_DATA/
+
+scp -r USERNAME@CLUSTER:~/MY_RAW_DATA/MULTI_QC_OUTPUT .
+
+```
+
+#### Bowtie2 alignment to reference
+
+Given the quality checks out OK, now we can align the reads to the S. venezuelae genome
+
+```{r}
+#Read mapping with RBowtie2
+
+bowtie2_build(references="ref/Sven_genome.fasta", bt2Index = "ref/venezuelae_bowtie")
+
+bowtie2(bt2Index = "ref/venezuelae_bowtie", 
+        samOutput = "sam_out/flagged1", 
+        seq1 = "trimmed/flagged1_trimmed_filtered.fastq", 
+        seq2 = NULL)
+
+bowtie2(bt2Index = "ref/venezuelae_bowtie", 
+        samOutput = "sam_out/flagged2", 
+        seq1 = "trimmed/flagged2_trimmed_filtered.fastq", 
+        seq2 = NULL)
+
+bowtie2(bt2Index = "ref/venezuelae_bowtie", 
+        samOutput = "sam_out/unflagged1", 
+        seq1 = "trimmed/unflagged1_trimmed_filtered.fastq", 
+        seq2 = NULL)
+
+bowtie2(bt2Index = "ref/venezuelae_bowtie", 
+        samOutput = "sam_out/unflagged2", 
+        seq1 = "trimmed/unflagged2_trimmed_filtered.fastq", 
+        seq2 = NULL)
+
+```
+
+```{r}
+#convert SAM to BAM
+
+asBam(file = "sam_out/flagged1", destination = "bam_out/flagged_v1")
+asBam(file = "sam_out/flagged2", destination = "bam_out/flagged_v2")
+asBam(file = "sam_out/unflagged1", destination = "bam_out/unflagged_v1")
+asBam(file = "sam_out/unflagged2", destination = "bam_out/unflagged_v2")
+
+```
+
+```{r}
+#add filter/sort step
+
+sortBam(file = "bam_out/flagged_v1.bam", destination = "sort_bam/flagged_v1")
+sortBam(file = "bam_out/flagged_v2.bam", destination = "sort_bam/flagged_v2")
+sortBam(file = "bam_out/unflagged_v1.bam", destination = "sort_bam/unflagged_v1")
+sortBam(file = "bam_out/unflagged_v2.bam", destination = "sort_bam/unflagged_v2")
+
+indexBam("bam_out/flagged_v1.bam", "sort_bam/flagged_v1")
+indexBam("bam_out/flagged_v2.bam", "sort_bam/flagged_v2")
+indexBam("bam_out/unflagged_v1.bam", "sort_bam/unflagged_v1")
+indexBam("bam_out/unflagged_v2.bam", "sort_bam/unflagged_v2")
+
+filterBam(file = "sort_bam/flagged_v1.bam", 
+          index = "bam_out/flagged_v1.bam.bai", 
+          destination = "filter_bam/flagged1.bam")
+
+filterBam(file = "sort_bam/flagged_v2.bam", 
+          index = "bam_out/flagged_v2.bam.bai", 
+          destination = "filter_bam/flagged2.bam")
+
+filterBam(file = "sort_bam/unflagged_v1.bam", 
+          index = "bam_out/unflagged_v1.bam.bai", 
+          destination = "filter_bam/unflagged1.bam")
+
+filterBam(file = "sort_bam/unflagged_v2.bam", 
+          index = "bam_out/unflagged_v2.bam.bai",
+          destination = "filter_bam/unflagged2.bam")
+```
+
+#### Generating Counts with MACS3
+
+We now have some aligned .bam files. The next step is to call peaks with MACS3. 
+
+In case you have not run python scripts in RStudio before, you will need to install some packages to start. 
+
+```{r}
+#install.packages('reticulate')
+```
+```{python}
+
+conda config --add channels defaults
+conda config --add channels bioconda
+conda config --add channels conda-forge
+
+conda install bwa
+
+pip install macs3
+
+#to run MACS3 its recommended you work in a virtual environment so that your home libraries don't get messed up 
+
+python3 -m venv ~/Bioinfo722/Data_Integration_Exercise/ChIP/VirtualEnv
+source ~/Documents/Bioinfo722/Data_Integration_Exercise/ChIP/VirtualEnv/bin/activate
+
+#now your command should lead with something like: (VirtualEnv) (base) MeghanMacbookPro:~"
+
+cd Documents/Bioinfo722/Data_Integration_Exercise/ChIP
+
+#all pairwise peak comparisons
+macs3 callpeak -t filter_bam/flagged1.bam -c filter_bam/unflagged1.bam -n MACS3/v1_v1 -g 8e6 --keep-dup all --mfold 2 100 
+
+macs3 callpeak -t filter_bam/flagged1.bam -c filter_bam/unflagged2.bam -n MACS3/v1_v2 -g 8e6 --keep-dup all --mfold 2 100 
+
+macs3 callpeak -t filter_bam/flagged2.bam -c filter_bam/unflagged1.bam -n MACS3/v2_v1 -g 8e6 --keep-dup all --mfold 2 100 
+
+macs3 callpeak -t filter_bam/flagged2.bam -c filter_bam/unflagged2.bam -n MACS3/v2_v2 -g 8e6 --keep-dup all --mfold 2 100 
+
+#I also have the bedtools program on my home computer, but this exists on Brians system I think. You can use it to find the genes that the peaks overlap with: 
+  
+bedtools intersect -a s_venezuelae_simple.gff -b v1_v1_summits.bed v1_v2_summits.bed v2_v2_summits.bed v2_v1_summits.bed -sorted -wa > peaks_overlapping_features.txt
+
+#A better way to do it would be to find the gene closest to each protein binding site (peak summit).
+
+bedtools closest -a MACS3/v1_v1_summits.bed -b ref/s_venezuelae.gff -t first -d > MACS3/v1v1peaks_closest_features.txt
+
+bedtools closest -a MACS3/v1_v2_summits.bed -b ref/s_venezuelae.gff -t first -d > MACS3/v1v2peaks_closest_features.txt
+
+bedtools closest -a MACS3/v2_v1_summits.bed -b ref/s_venezuelae.gff -t first -d > MACS3/v2v1peaks_closest_features.txt
+
+bedtools closest -a MACS3/v2_v2_summits.bed -b ref/s_venezuelae.gff -t first -d > MACS3/v2v2peaks_closest_features.txt
+
+```
+
+
+```{bash}
+#now combine htem into one file 
+
+cd MACS3/ 
+
+cat v1v1peaks_closest_features.txt v1v2peaks_closest_features.txt v2v1peaks_closest_features.txt v2v2peaks_closest_features.txt > peaks_closest_combined.txt
+
+#this generates a text file with all of the gene features the peaks (ID'd from the four replicates) are closest to - Repeated for each ID (i.e. if all four pairwise samples had overlapping peaks/gene, it would spit out that gene 4x)
+
+#trim the files so you only have the columns you need 
+cut -f14,15 peaks_closest_combined.txt > peaks_closest_subset.txt
+
+```
+Now we can move this table into R! 
+
+```{r}
+
+peaks_closest_features <- read.delim("MACS3/peaks_closest_subset.txt", header = FALSE)
+
+#the way the GFF file is constructed we have to clean it up a little to get a table we can use for further analyses
+
+library(tidyr)
+library(dplyr)
+tag <- c("tag1", "tag2")
+peaks_closest_features_split <- separate(peaks_closest_features, 1, tag, sep = ";")
+
+colnames(peaks_closest_features_split) <- c("ID", "name", "distance")
+
+peaks_closest_trim <- select(peaks_closest_features_split, ID,  distance)
+
+cleaned_closest <- peaks_closest_trim %>%
+  mutate_if(is.character, stringr::str_replace_all, pattern = 'ID=SVEN_', replacement = '')
+
+#now we have a nice table and we want to remove duplicates (if the same gene is ID'd by all four pairwise comparisons, just keep the one with greatest distance). 
+
+library(data.table)
+dedup_closest <- unique(setDT(cleaned_closest)[order(ID, -distance)], by = "ID")
