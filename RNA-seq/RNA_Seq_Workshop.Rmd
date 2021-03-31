@@ -88,14 +88,14 @@ coldata <- data.frame(files, genotype) # <- Create the data frame "coldata"
 
 
 ```{r, `echo = FALSE`}
-# Generate the DESeqDataSet for comparing deferentially expressed genes in the mutant and wildtype
+# Generate the DESeqDataSet for comparing differentially expressed genes in the mutant and wildtype
 
 deseqdata <- DESeqDataSetFromMatrix(countData = counts, colData = coldata, design = ~genotype)
 ```
 
 
 ```{r, `echo = FALSE`}
-# Generate the DESeqDataSet for comparing deferentially expressed genes in the mutant and wildtype
+# Generate the DESeqDataSet for comparing differentially expressed genes in the mutant and wildtype
 
 deseqdata <- DESeqDataSetFromMatrix(countData = counts, colData = coldata, design = ~genotype)
 ```
