@@ -313,3 +313,38 @@ cleaned_closest <- peaks_closest_trim %>%
 
 library(data.table)
 dedup_closest <- unique(setDT(cleaned_closest)[order(ID, -distance)], by = "ID")
+
+#add info on if the genes closest to binding site are in a biosynthetic gene cluster 
+
+Chip_table_clusters <- ChIP_table %>%
+  mutate(ClusterID = case_when((ID >= 223 & ID <= 234) ~ "Ectoine",
+                               (ID >= 261 & ID <= 306) ~ "Terpene1",
+                               (ID >= 463 & ID <= 531) ~ "T1PKS-T3PKS-NRPS",
+                               (ID >= 540 & ID <= 561) ~ "Lantipeptide/terpene"	,
+                               (ID >= 612 & ID <= 630) ~ "Lantipeptide(venezuelin)",
+                               (ID >= 755 & ID <= 772) ~ "Indole(acryriaflavin)",
+                               (ID >= 913 & ID <= 928) ~ "Chloramphenicol",
+                               (ID >= 1844 & ID <= 1884) ~ "Other1",
+                               (ID >= 2566 & ID <= 2577) ~ "Siderophore(desferrioxamine-like)",
+                               (ID >= 3103 & ID <= 3132) ~ "Lassopeptide",
+                               (ID >= 4061 & ID <= 4110) ~ "Other2",
+                               (ID >= 4179 & ID <= 4189) ~ "Butyrolactone(gaburedin)",
+                               (ID >= 4620 & ID <= 4662) ~ "Melanin1",
+                               (ID >= 5076 & ID <= 5111) ~ "Butyrolactone",
+                               (ID >= 5119 & ID <= 5145) ~ "Thiopeptide",
+                               (ID >= 5351 & ID <= 5383) ~ "T3PKS1",
+                               (ID >= 5413 & ID <= 5426) ~ "Siderophore1",
+                               (ID >= 5471 & ID <= 5482) ~ "Siderophore2",
+                               (ID >= 5817 & ID <= 5840) ~ "Bacteriocin1",
+                               (ID >= 5951 & ID <= 6002) ~ "Butyrolactone/T2PKS",
+                               (ID >= 6112 & ID <= 6204) ~ "Other3",
+                               (ID >= 6134 & ID <= 6282) ~ "NRPS-ladderane",
+                               (ID >= 6436 & ID <= 6490) ~ "Terpene2",
+                               (ID >= 6527 & ID <= 6535) ~ "Bacteriocin2",
+                               (ID >= 6767 & ID <= 6814) ~ "T2PKS",
+                               (ID >= 6833 & ID <= 6842) ~ "Melanin2",
+                               (ID >= 7032 & ID <= 7080) ~ "NRPS",
+                               (ID >= 7101 & ID <= 7119) ~ "Terpene3",
+                               (ID >= 7223 & ID <= 7259) ~ "T3PKS2",
+                               (ID >= 7417 & ID <= 7452) ~ "Terpene-NRPS",
+                               TRUE ~ "NA"))
