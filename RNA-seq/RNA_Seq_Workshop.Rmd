@@ -12,6 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 # Package Install ----
+
 if (!requireNamespace("BiocManager", quietly = TRUE))
   install.packages("BiocManager")
 
@@ -23,6 +24,7 @@ install.packages("ape")
 
 ```{r}
 # Set up working directory ----
+
 setwd("~") # <- Edit this based on the directory of your choice
 getwd() # <- Check that you are in the correct working directory
 ```
@@ -30,6 +32,7 @@ getwd() # <- Check that you are in the correct working directory
 
 ```{r}
 # Library ----
+
 library(Rsubread)
 
 library(ape)
@@ -108,6 +111,7 @@ deseqdata$genotype <- factor(deseqdata$genotype, levels = c("wildtype","mutant")
 
 ```{r, `echo = FALSE`}
 # Perform DeSeq() analysis and output to results table
+
 deseqdata <- DESeq(deseqdata)
 
 results <- results(deseqdata, alpha = 0.05) # <- Generate the results table based on the DESeq2 analysis with the alpha factor changed to 0.05
@@ -129,21 +133,19 @@ resultsOrdered <- subset(resultsOrdered, padj<.05) # <- Subset the reordered tab
 summary(resultsOrdered) # <- Check the summary of resultsOrdered 
 
 resultsOrdered[is.na(resultsOrdered$padj), ] # <- Select the adjusted p-values of the resultsOrdered table and pass it to the function is.na() to check the adjusted p-value column for "NA" values. Output should contain: "DataFrame with 0 rows and 6 columns"
-```
 
 
-```{r}
-# Write the reordered results to a .csv file
 write.csv(as.data.frame(resultsOrdered), 
-          file="mutant_versus_wildtype_gene_expression_data.csv")
+          file="mutant_versus_wildtype_gene_expression_data.csv") # <- Write the reordered results to a .csv file
 ```
-
 
 
 ### Identify significantly differentially expressed genes that correlate CHIP-sequencing binding sites to genes that possess altered expression when the Lsr2 gene is deleted
 
-# Merge the differential gene expression output with CHIP-Seq output
+
 ```{r}
+# Merge the differential gene expression output with CHIP-Seq output
+
 rnaseq_csv <- read.csv("mutant_versus_wildtype_gene_expression_data.csv") # <- Read in the .csv file
 
 colnames(rnaseq_csv) # <- Check the column names of the .csv file
