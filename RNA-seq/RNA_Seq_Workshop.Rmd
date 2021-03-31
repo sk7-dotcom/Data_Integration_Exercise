@@ -35,6 +35,8 @@ library(Rsubread)
 library(ape)
 
 library(DESeq2)
+
+library(stringr)
 ```
 
 ###Assign mapped reads to genomic features using featureCounts()
@@ -82,7 +84,6 @@ coldata <- data.frame(files, genotype) # <- Create the data frame "coldata"
 ```
 
 
-
 ```{r, `echo = FALSE`}
 # Generate the DESeqDataSet for comparing deferentially expressed genes in the mutant and wildtype
 
@@ -95,10 +96,12 @@ deseqdata <- DESeqDataSetFromMatrix(countData = counts, colData = coldata, desig
 
 deseqdata <- DESeqDataSetFromMatrix(countData = counts, colData = coldata, design = ~genotype)
 ```
+
 
 ##Differential Gene Expression Analysis
 ```{r}
 # Relevel the factors in "genotype" so that wildtype is the reference level for analysis
+
 deseqdata$genotype <- factor(deseqdata$genotype, levels = c("wildtype","mutant"))
 ```
 
@@ -107,23 +110,55 @@ deseqdata$genotype <- factor(deseqdata$genotype, levels = c("wildtype","mutant")
 # Perform DeSeq() analysis and output to results table
 deseqdata <- DESeq(deseqdata)
 
-results <- results(deseqdata) # <- Generate the results table
+results <- results(deseqdata, alpha = 0.05) # <- Generate the results table based on the DESeq2 analysis with the alpha factor changed to 0.05
 
-results # <- View results table in the console
+results # <- Check results table in the console
+
 ```
 
 
 ```{r, `echo = FALSE`}
-# Reorders the results table with lowest adjusted p-value first
-resultsOrdered <- results[order(results$padj),]
+# Reorganize the results table to display only significantly expressed genes which exhibit >1 log2fold change
 
-resultsOrdered # <- View reordered results in the console
+results_lfc <- subset(results, abs(log2FoldChange) > 1) # <- Subset the results table using the subset() function according to an absolute log2FoldChange greater than 1 and saves it as a new table called, results_lfc
+
+resultsOrdered <- results_lfc[order(results_lfc$padj),] # <- Reorder the rows of the results_lfc table  using the order() function, and the column specified using "$", ie) the adjusted p-values, and saves it as a new table called resultsOrdered
+
+resultsOrdered <- subset(resultsOrdered, padj<.05) # <- Subset the reordered table of results accorded to include only adjusted p-values less than 0.05 using the subset() function and save it again into resultsOrdered
+
+summary(resultsOrdered) # <- Check the summary of resultsOrdered 
+
+resultsOrdered[is.na(resultsOrdered$padj), ] # <- Select the adjusted p-values of the resultsOrdered table and pass it to the function is.na() to check the adjusted p-value column for "NA" values. Output should contain: "DataFrame with 0 rows and 6 columns"
 ```
 
+
 ```{r}
-# Write reordered results to a .csv file
+# Write the reordered results to a .csv file
 write.csv(as.data.frame(resultsOrdered), 
           file="mutant_versus_wildtype_gene_expression_data.csv")
 ```
 
 
+
+### Identify significantly differentially expressed genes that correlate CHIP-sequencing binding sites to genes that possess altered expression when the Lsr2 gene is deleted
+
+# Merge the differential gene expression output with CHIP-Seq output
+```{r}
+rnaseq_csv <- read.csv("mutant_versus_wildtype_gene_expression_data.csv") # <- Read in the .csv file
+
+colnames(rnaseq_csv) # <- Check the column names of the .csv file
+
+rnaseq_csv <- rnaseq_csv %>% mutate_all(str_replace_all, "SVEN_", "") # <- Remove the prefix, "SVEN_", in the .csv file by piping the mutate_all() function, with the argument str_replace_all with arguments to replace the specified string, "SVEN_", with blank space " "
+
+head(rnaseq_csv) # <- Check that "SVEN_" was removed
+
+rnaseq_csv <- rnaseq_csv %>% rename(ID = X) # <- Change the name of the column containing the gene IDs to "ID" using the rename() function piped to the .csv file
+
+write.csv(as.data.frame(rnaseq_csv), file = "rnaseq.csv", row.names = FALSE) # <- Write the new .csv file
+
+ChIPseq_csv <- read.csv("ChIP_table_clusters.csv") # <- Read in the Chip-Seq .csv file
+
+merged_seq_data <- merge(rnaseq_csv, ChIPseq_csv, by = c('ID', 'ID')) # <- Merge the CHIP-Seq .csv to the rnaseq_csv using the "ID" column
+
+write.csv(as.data.frame(merged_seq_data), file = "merged_seq_data.csv", row.names = FALSE) # <- Write the merged data to a new .csv file using row.names = FALSE to prevent the addition of a column of numbered rows
+```
