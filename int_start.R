@@ -2,13 +2,12 @@
 
 # Packages to install ----
 
-BiocManager::install("igvR")
+#BiocManager::install("igvR")
 
 #Packages used: ----
 library(tidyverse)
-library(eulerr)
 library(VennDiagram)
-library(igvR)
+#library(igvR)
 
 
 #Datasets: ----
@@ -20,7 +19,7 @@ cluster_data <- read.csv('RNA_table.csv')
 #Data Checks: ----
 
 #Matching columns across data
-ChIP_dat <- ChIP_dat %>% rename(geneid = ID)
+ChIP_dat <- ChIP_dat %>% rename(ID = geneid)
 cluster_data <- cluster_data %>% rename(geneid = ID)
 
 #checking for NAs in datatables 

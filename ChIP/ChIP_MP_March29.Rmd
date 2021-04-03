@@ -5,13 +5,6 @@ date: "29/03/2021"
 output: html_document
 ---
 
----
-title: "Workshop"
-author: "Meghan Pepler"
-date: "22/03/2021"
-output: html_document
----
-
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
