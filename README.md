@@ -21,7 +21,9 @@ ______________________________________________________
 
 ### Streptomyces Venezuelae
 
-![CHIP-seq pipeline](https://doi.org/10.1016/j.ymeth.2020.03.005) ![](~/BIOLOGY722/Data_Integratio_Exercise/ChIP/Pictures/ChIP_pipeline.jpg)
+[CHIP-seq pipeline](https://doi.org/10.1016/j.ymeth.2020.03.005)
+
+![](https://github.com/sk7-dotcom/Data_Integration_Exercise/blob/main/ChIP/Pictures/ChIP_pipeline.jpg)
 
 ### Biological question for today
 
