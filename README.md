@@ -20,13 +20,13 @@ ______________________________________________________
 
 Streptomyces are soil-dwelling Gram-positive bacteria that have a complex multi-stage lifecycle and secondary metabolism. They specialize in antibiotic production and are the organism for todays analysis. 
 
-![](https://github.com/sk7-dotcom/Data_Integration_Exercise/blob/main/ChIP/Pictures/S_Ven.jpg)
+![](https://github.com/sk7-dotcom/Data_Integration_Exercise/blob/main/ChIP/Pictures/S_Ven.JPG)
 
 #### Biological question for today
 
 Antibiotic production in this bacteria is divided into ~30 biosynthetic clusters that contain the genes needed to produce a specific antibiotic. Lsr2 is a nucleoid associated protein that behaves similarly to Histone proteins in eucaryotic systems. It has the ability to bend and contort DNA to regulate gene expression. Here we investigate whether Lsr2 binding has an repressive effect on the biosynthetic clusters. 
 
-![](https://github.com/sk7-dotcom/Data_Integration_Exercise/blob/main/ChIP/Pictures/Clusters.jpg)
+![](https://github.com/sk7-dotcom/Data_Integration_Exercise/blob/main/ChIP/Pictures/Clusters.JPG)
 
 ### Chromatin Immunoprecipitation Sequencing (ChIP-Seq)
 
