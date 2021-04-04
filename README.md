@@ -1,11 +1,8 @@
 # CHIP-seq and RNA-seq integration tutorial
 
-##### Presented by: 
+#### Presented by: 
 
-Meagan Archer 
-Meghan Pepler
-Sreedevi Kesavan 
-Stephanie Ali Fairbairn 
+Meagan Archer, Meghan Pepler, Sreedevi Kesavan, and Stephanie Ali Fairbairn 
 ______________________________________________________
 April 7th 2021
 
@@ -21,19 +18,27 @@ ______________________________________________________
 
 ### Streptomyces Venezuelae
 
-[CHIP-seq pipeline](https://doi.org/10.1016/j.ymeth.2020.03.005)
+Streptomyces are soil-dwelling Gram-positive bacteria that have a complex multi-stage lifecycle and secondary metabolism. They specialize in antibiotic production and are the organism for todays analysis. 
 
-![](https://github.com/sk7-dotcom/Data_Integration_Exercise/blob/main/ChIP/Pictures/ChIP_pipeline.jpg)
+![](https://github.com/sk7-dotcom/Data_Integration_Exercise/blob/main/ChIP/Pictures/S_Ven.jpg)
 
-### Biological question for today
+#### Biological question for today
 
+Antibiotic production in this bacteria is divided into ~30 biosynthetic clusters that contain the genes needed to produce a specific antibiotic. Lsr2 is a nucleoid associated protein that behaves similarly to Histone proteins in eucaryotic systems. It has the ability to bend and contort DNA to regulate gene expression. Here we investigate whether Lsr2 binding has an repressive effect on the biosynthetic clusters. 
 
+![](https://github.com/sk7-dotcom/Data_Integration_Exercise/blob/main/ChIP/Pictures/Clusters.jpg)
 
 ### Chromatin Immunoprecipitation Sequencing (ChIP-Seq)
+
+![](https://github.com/sk7-dotcom/Data_Integration_Exercise/blob/main/ChIP/Pictures/ChIP_pipeline.jpg)
+[CHIP-seq pipeline](https://doi.org/10.1016/j.ymeth.2020.03.005)
 
 
 
 ### How to ChIP
+
+![](https://github.com/sk7-dotcom/Data_Integration_Exercise/blob/main/ChIP/Pictures/chip_workflow.jpg)
+[This](https://github.com/hbctraining/Intro-to-ChIPseq) and is a page for going into more detail on the ChIP-seq analysis process. This page details the process our experiment took, but for more detail on file types and even pipelines that are run entirely in the cluster go to HBC training website above.  
 
 ### How to Integrate 
 
