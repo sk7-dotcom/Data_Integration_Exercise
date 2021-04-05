@@ -10,13 +10,13 @@ Welcome to the second tutorial for Biology 722!
 
 We are going to be spending this lesson:
 
-1. Introducing **Streptomyces Venezuelae** and the biological question we want to answer today.
+1. Introducing **Streptomyces venezuelae** and the biological question we want to answer today.
 2. Discussing the ChIP-seq analysis pipeline and how integrating these results into the RNA-seq data can give greater biological clarity to data. 
 3. Workshop on ChIP-seq pipeline and integration.
 4. Results and Discussion on biological question.
 ______________________________________________________
 
-### Streptomyces Venezuelae
+### Streptomyces venezuelae
 
 Streptomyces are soil-dwelling Gram-positive bacteria that have a complex multi-stage lifecycle and secondary metabolism. They specialize in antibiotic production and are the organism for todays analysis. 
 
@@ -24,7 +24,7 @@ Streptomyces are soil-dwelling Gram-positive bacteria that have a complex multi-
 
 #### Biological question for today
 
-Antibiotic production in this bacteria is divided into ~30 biosynthetic clusters that contain the genes needed to produce a specific antibiotic. Lsr2 is a nucleoid associated protein that behaves similarly to Histone proteins in eucaryotic systems. It has the ability to bend and contort DNA to regulate gene expression. Here we investigate whether Lsr2 binding has an repressive effect on the biosynthetic clusters. 
+Antibiotic production in this bacteria is goverened by ~30 biosynthetic gene clusters. The products of these genes coordinate together to produce a specific antibiotic. Each cluster will encode: enzymes responsible for the catalysis and modification of the core antibiotic backbone, one or more gene product(s) to regulate the activity of the cluster, and resistance factors or efflux pumps to prevent cell suicide when the cluster is active. Lsr2 is a nucleoid associated protein that behaves similarly to Histone proteins in eucaryotic systems. It has the ability to bend and contort DNA to regulate gene expression. Here we investigate whether Lsr2 binding has an repressive effect on the biosynthetic clusters. 
 
 ![](https://github.com/sk7-dotcom/Data_Integration_Exercise/blob/main/ChIP/Pictures/Clusters.JPG)
 
