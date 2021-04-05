@@ -1,0 +1,12 @@
+INFO [2021-04-04 22:30:00] $x
+INFO [2021-04-04 22:30:00] list(EL_data$geneid, EL_chip[, 1], Cluster_bound[, 1])
+INFO [2021-04-04 22:30:00] 
+INFO [2021-04-04 22:30:00] $category.names
+INFO [2021-04-04 22:30:00] c("RNA_seq", "ChIP_seq", "Within Cluster")
+INFO [2021-04-04 22:30:00] 
+INFO [2021-04-04 22:30:00] $filename
+INFO [2021-04-04 22:30:00] [1] "venn_diagramm.png"
+INFO [2021-04-04 22:30:00] 
+INFO [2021-04-04 22:30:00] $output
+INFO [2021-04-04 22:30:00] [1] TRUE
+INFO [2021-04-04 22:30:00] 

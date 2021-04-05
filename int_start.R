@@ -16,6 +16,9 @@ ChIP_dat <- read.csv('ChIP/ChIP_table.csv')
 cluster_chip_data <- read.csv('ChIP/ChIP_table_clusters.csv')
 cluster_data <- read.csv('RNA_table.csv')
 fold_enrich <- read.csv('ChIP/chip_fe.csv')
+bound_genes <- read.csv('ChIP/bound_genes.csv')
+EL_data <- read.csv('ChIP/RNA_plot_EL.csv')
+EL_chip <- read.csv('ChIP/chip_EL.csv')
 
 #Data Checks: ----
 
@@ -40,36 +43,32 @@ ChIP_dat <- ChIP_dat %>% mutate(geneid = as.numeric(geneid)) %>% drop_na(geneid)
 
 #Venn attempt ----
 
-ChIP <- ChIP_dat %>% select(geneid); RNA <- RNA_dat_2 %>% select(geneid)
-
-fit <- euler(c(RNA = RNA[,1], CHIP = ChIP[,1]),
-             shape = "ellipse") # <--- keeps aborting r session so I am not doing this anymore 
-
-#clearly all the gene from ChIP are in the RNA set, so thats nice. This can be used for future 
-#union efforts. 
-
-
+Cluster_bound = RNA_clusters %>% filter(Cluster != is.na(Cluster)) %>% select(geneid)
 
 venn.diagram(
-  x = list(RNA_clusters$geneid, ChIP_dat$geneid),
-  category.names = c("RNA_seq" , "CHIP_seq"),
-  filename = 'venn_diagramm.png',
+  x = list(EL_data$geneid, EL_chip[,1], Cluster_bound[,1]),
+  category.names = c("BGC", "RNA_seq" , "ChIP_seq"),
+  filename = 'venn_diagramm.jpg',
   output=TRUE
 )
 
 #Lsr2_bound or not
+
 chip_id <- ChIP_dat[,1]
 
 plot_try <- RNA_clusters %>% 
   mutate(Lsr2_bound = case_when(geneid %in% chip_id ~ "Bound", TRUE ~ "Not Bound"))
+
+pdf('ChIP/Pictures/Lsr2_bind_vs_log2FC.pdf')
+
+ggplot(plot_try, aes(Lsr2_bound, log2FoldChange, color = Cluster)) + geom_jitter(size = 2, alpha = 0.5) + 
+  theme_bw() + xlab('Lsr2 Binding Status') + ylab('log2 Fold Change') + geom_hline(yintercept = 0, alpha = 0.7, color = 'red') + 
+  ylim(min = -10, max = 10)
+
+dev.off()
   
 #Preliminary plots ----
 
-ggplot(join_try, aes(distance, log2FoldChange)) + geom_point()
-
-plot_1 <- ggplot(plot_try, aes(cluster, log2FoldChange, color = Lsr2_bound)) + 
-  geom_jitter(alpha = 0.3) + coord_flip() + theme_bw() + geom_hline(yintercept = 0) +
-  ylim(min = -10, max = 10)
 
 
 # Modeling
@@ -107,7 +106,7 @@ ggplot(join_try, aes(signal, log2FoldChange, color = cluster)) + geom_point()
 ###########################
 
 RNA_clusters <- RNA_dat %>%
-  mutate(cluster = case_when((ID >= 223 & ID <= 234) ~ "Ectoine",
+  mutate(Cluster = case_when((ID >= 223 & ID <= 234) ~ "Ectoine",
                                (ID >= 261 & ID <= 306) ~ "Terpene1",
                                (ID >= 463 & ID <= 531) ~ "T1PKS-T3PKS-NRPS",
                                (ID >= 540 & ID <= 561) ~ "Lantipeptide/terpene"	,
@@ -136,8 +135,9 @@ RNA_clusters <- RNA_dat %>%
                                (ID >= 7032 & ID <= 7080) ~ "NRPS",
                                (ID >= 7101 & ID <= 7119) ~ "Terpene3",
                                (ID >= 7223 & ID <= 7259) ~ "T3PKS2",
-                               (ID >= 7417 & ID <= 7452) ~ "Terpene-NRPS",
-                               TRUE ~ "NA"))
+                               (ID >= 7417 & ID <= 7452) ~ "Terpene-NRPS"))
 
 RNA_clusters <- RNA_clusters %>% rename(geneid = ID)
+
+
 

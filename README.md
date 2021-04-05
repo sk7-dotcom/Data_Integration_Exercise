@@ -30,8 +30,12 @@ Antibiotic production in this bacteria is goverened by ~30 biosynthetic gene clu
 
 ### Chromatin Immunoprecipitation Sequencing (ChIP-Seq)
 
-![](https://github.com/sk7-dotcom/Data_Integration_Exercise/blob/main/ChIP/Pictures/ChIP_pipeline.jpg)
-[CHIP-seq pipeline](https://doi.org/10.1016/j.ymeth.2020.03.005)
+[What is ChIP-Seq?](https://www.illumina.com/techniques/sequencing/dna-sequencing/chip-seq.html)
+By combining chromatin immunoprecipitation (ChIP) assays with sequencing, ChIP sequencing (ChIP-Seq) is a powerful method for identifying genome-wide DNA binding sites for transcription factors and other proteins. Following ChIP protocols, DNA-bound protein is immunoprecipitated using a specific antibody. The bound DNA is then coprecipitated, purified, and sequenced.
+
+![](https://github.com/sk7-dotcom/Data_Integration_Exercise/blob/main/ChIP/Pictures/41597_2015_Article_BFsdata20150_Fig1_HTML.webp) Figure Can be found [here](https://www.nature.com/articles/sdata201510#Fig1)
+
+The application of next-generation sequencing (NGS) to ChIP has revealed insights into gene regulation events that play a role in various diseases and biological pathways, such as development and cancer progression. ChIP-Seq enables thorough examination of the interactions between proteins and nucleic acids on a genome-wide scale.
 
 
 
@@ -40,5 +44,12 @@ Antibiotic production in this bacteria is goverened by ~30 biosynthetic gene clu
 ![](https://github.com/sk7-dotcom/Data_Integration_Exercise/blob/main/ChIP/Pictures/chip_workflow.jpg)
 [This](https://github.com/hbctraining/Intro-to-ChIPseq) and is a page for going into more detail on the ChIP-seq analysis process. This page details the process our experiment took, but for more detail on file types and even pipelines that are run entirely in the cluster go to HBC training website above.  
 
-### How to Integrate 
+#### Tools used in this tutorial (does not incluse packages for RNA-seq pipeline)
 
+Most tools have been run with [Bioconductor](https://bioconductor.org/) tools but can just as easily be run with shell scripting. Look into the HBC training page for alternative code to several tools listed below:
+
+1. [Rbowtie2](https://bioconductor.org/packages/release/bioc/manuals/Rbowtie2/man/Rbowtie2.pdf)
+2. [Rsamtools](https://bioconductor.org/packages/release/bioc/manuals/Rsamtools/man/Rsamtools.pdf)
+3. [FastQC](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/)
+4. [MACS3](https://pypi.org/project/MACS3/) ([MACSr](https://52.71.54.154/packages/devel/bioc/manuals/MACSr/man/MACSr.pdf) is supposed to come out soon for the Bioconductor environment.)
+5. [BedTools](https://bedtools.readthedocs.io/en/latest/) or [bedr](https://cran.r-project.org/web/packages/bedr/bedr.pdf)
