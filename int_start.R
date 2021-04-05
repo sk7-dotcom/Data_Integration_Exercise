@@ -11,10 +11,10 @@ library(VennDiagram)
 
 
 #Datasets: ----
-RNA_dat <- read.csv('mutant_versus_wildtype_gene_expression_data_BETTER.csv')
+RNA_dat <- read.csv('RNA-seq/mutant_versus_wildtype_gene_expression_data_BETTER.csv')
 ChIP_dat <- read.csv('ChIP/ChIP_table.csv')
 cluster_chip_data <- read.csv('ChIP/ChIP_table_clusters.csv')
-cluster_data <- read.csv('RNA_table.csv')
+cluster_data <- read.csv('RNA-seq/RNA_table.csv')
 fold_enrich <- read.csv('ChIP/chip_fe.csv')
 bound_genes <- read.csv('ChIP/bound_genes.csv')
 EL_data <- read.csv('ChIP/RNA_plot_EL.csv')
