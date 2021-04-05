@@ -30,19 +30,19 @@ Antibiotic production in this bacteria is goverened by ~30 biosynthetic gene clu
 
 ### Chromatin Immunoprecipitation Sequencing (ChIP-Seq)
 
-[What is ChIP-Seq?](https://www.illumina.com/techniques/sequencing/dna-sequencing/chip-seq.html)
+#### [What is ChIP-Seq?](https://www.illumina.com/techniques/sequencing/dna-sequencing/chip-seq.html)
+
 By combining chromatin immunoprecipitation (ChIP) assays with sequencing, ChIP sequencing (ChIP-Seq) is a powerful method for identifying genome-wide DNA binding sites for transcription factors and other proteins. Following ChIP protocols, DNA-bound protein is immunoprecipitated using a specific antibody. The bound DNA is then coprecipitated, purified, and sequenced.
 
-![](https://github.com/sk7-dotcom/Data_Integration_Exercise/blob/main/ChIP/Pictures/41597_2015_Article_BFsdata20150_Fig1_HTML.webp) Figure Can be found [here](https://www.nature.com/articles/sdata201510#Fig1)
+![](https://github.com/sk7-dotcom/Data_Integration_Exercise/blob/main/ChIP/Pictures/ChIP_pipeline.jpg) Figure Can be found [here](https://www.nature.com/articles/sdata201510#Fig1)
 
 The application of next-generation sequencing (NGS) to ChIP has revealed insights into gene regulation events that play a role in various diseases and biological pathways, such as development and cancer progression. ChIP-Seq enables thorough examination of the interactions between proteins and nucleic acids on a genome-wide scale.
-
-
 
 ### How to ChIP
 
 ![](https://github.com/sk7-dotcom/Data_Integration_Exercise/blob/main/ChIP/Pictures/chip_workflow.jpg)
-[This](https://github.com/hbctraining/Intro-to-ChIPseq) and is a page for going into more detail on the ChIP-seq analysis process. This page details the process our experiment took, but for more detail on file types and even pipelines that are run entirely in the cluster go to HBC training website above.  
+
+[This](https://github.com/hbctraining/Intro-to-ChIPseq) is a page for going into more detail on the ChIP-seq analysis process. This page details the process our experiment took, but for more detail on file types and even pipelines that are run entirely in the cluster go to HBC training website above.  
 
 #### Tools used in this tutorial (does not incluse packages for RNA-seq pipeline)
 
