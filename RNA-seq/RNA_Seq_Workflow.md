@@ -1,13 +1,21 @@
 # Data_Integration_Exercise
-## PART 1: RNA-sequencing Differential Gene Expression Analysis
+## RNA-sequencing Differential Gene Expression Analysis
 ### Comparing Differentially Expressed Genes in Mutant and Wildtype *Streptomyces venezuelae* using R
 ##### Authors: Meagan Archer and Stephanie Ali Fairbairn
 
-##### Date: 29/03/2021
+##### Date: 07/04/2021
 
 ##### Output: DESeq2 Differential Expression Results as .csv File
 
 ---
+
+Welcome to workshop portion of today's tutorial!
+
+This is part 1 of 3 sections towards integrating our data: RNA-seq analysis
+
+For more context and details on each step look under the slides folder in the main repo. 
+
+_________________
 
 The raw reads have been previously quality checked, cleaned and aligned to the reference genome for *Streptomyces venezuelae* by a past member of the Elliot Lab. The next steps 
 in the RNA-sequencing differential analysis pipeline are to (1) count the reads mapping to genomic features and (2) use the counts generated to test for differentially expressed 
