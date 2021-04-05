@@ -1,0 +1,3 @@
+﻿SampleID,Tissue,Factor,Condition,Replicate,bamReads,ControlID,bamControl,Peaks,PeakCaller
+FLAG1,NA,NA,NA,1,MACS3/bam/flagged1.bam,UNFLAG1,MACS3/bam/unflagged1.bam,MACS3/v1_v1_peaks.narrowPeak,narrow
+FLAG2,NA,NA,NA,2,MACS3/bam/flagged2.bam,UNFLAG2,MACS3/bam/unflagged2.bam,MACS3/v2_v2_peaks.narrowPeak,narrow
