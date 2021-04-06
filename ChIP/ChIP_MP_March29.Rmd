@@ -2,7 +2,9 @@
 title: "ChIP-seq data processing and analysis"
 date: "07/04/2021"
 author: "Meghan Peplar and Sreedevi Kesavan"
-output: html_document
+output:
+  md_document:
+    variant: markdown_github
 ---
 
 ```{r setup, include=FALSE}
@@ -261,7 +263,7 @@ It should be noted that you need the newest version of [Python](https://www.pyth
 
 It can be tricky/time consuming to get them, you can install and run these in your own time, we have provided the output of this code in the initial `scp` under the MACS3 directory. 
 
-```{python}
+```{python eval = FALSE}
 
 conda config --add channels defaults
 conda config --add channels bioconda
@@ -364,7 +366,7 @@ The `ChIPQC()` function takes that .csv and makes it into an object that can be 
 2. `reportName` = Name of the output file 
 3. `reportFolder` = Where your output file will live
 
-```{r}
+```{r eval = FALSE}
 samples <- read.csv('ChIPQC/ChIPQC.csv')
 
 chipObj <- ChIPQC(samples) 
@@ -373,9 +375,9 @@ ChIPQCreport(experiment = chipObj, reportName="ChIP_QC_report", reportFolder="~/
 
 ```
 
-Finally, generate 
+Finally, generate `sessionInfo()` for a report on all the tools used today. 
 
-```{r}
+```{r eval = FALSE}
 sessionInfo()
 ```
 
