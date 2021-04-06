@@ -317,13 +317,13 @@ Look for full list of options [here](https://bedtools.readthedocs.io/en/latest/c
 Function generates a text file with all the distances for each gene id.
 
 ```{bash eval = FALSE}
-bedtools closest -a MACS3/v1_v1_summits.bed -b ref/s_venezuelae.gff -D a -id > MACS3/v1v1peaks_bound_upstream_features.txt
+bedtools closest -a MACS3/v1_v1_summits.bed -b ref/s_venezuelae.gff -d > MACS3/v1v1peaks_bound_upstream_features.txt
 
-bedtools closest -a MACS3/v1_v2_summits.bed -b ref/s_venezuelae.gff -D a -id > MACS3/v1v2peaks_bound_upstream_features.txt
+bedtools closest -a MACS3/v1_v2_summits.bed -b ref/s_venezuelae.gff -d > MACS3/v1v2peaks_bound_upstream_features.txt
 
-bedtools closest -a MACS3/v2_v1_summits.bed -b ref/s_venezuelae.gff -D a -id > MACS3/v2v1peaks_bound_upstream_features.txt
+bedtools closest -a MACS3/v2_v1_summits.bed -b ref/s_venezuelae.gff -d > MACS3/v2v1peaks_bound_upstream_features.txt
 
-bedtools closest -a MACS3/v2_v2_summits.bed -b ref/s_venezuelae.gff -D a -id > MACS3/v2v2peaks_bound_upstream_features.txt
+bedtools closest -a MACS3/v2_v2_summits.bed -b ref/s_venezuelae.gff -d > MACS3/v2v2peaks_bound_upstream_features.txt
 
 #while youre working in your terminal you can also combine these files into one large file (to be de-duped later)
 
