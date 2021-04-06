@@ -7,4 +7,4 @@ samples <- read.csv('ChIPQC/ChIPQC.csv')
 
 chipObj <- ChIPQC(samples) 
 
-ChIPQCreport(chipObj, reportName="ChIP QC report", reportFolder="~/Desktop/ChIPQC/")
+ChIPQCreport(chipObj, reportName="ChIP QC report", reportFolder="~/.../ChIPQC/")
