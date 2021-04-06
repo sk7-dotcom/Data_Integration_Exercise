@@ -9,7 +9,7 @@
 
 ---
 
-Welcome to workshop portion of today's tutorial!
+Welcome to the workshop portion of today's tutorial!
 
 This is part 1 of 3 sections towards integrating our data: RNA-seq analysis
 
