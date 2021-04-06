@@ -63,10 +63,14 @@ cleaned_features <- peaks_feature_trim %>%
 
 dedup_features <- unique(setDT(cleaned_features)[order(geneid, -distance)], by = "geneid")
 
+<<<<<<< HEAD
 write.csv(dedup_features, file = '~/Desktop/ChIP_table.csv')
 
 ChIP_dat <- read.csv('ChIP/ChIP_table.csv')
 ChIP_dat <- ChIP_dat %>% mutate(geneid = as.numeric(geneid)) %>% drop_na(geneid) 
+=======
+ChIP_dat <- dedup_closest %>% mutate(geneid = as.numeric(geneid)) %>% drop_na() 
+>>>>>>> 8901657b001eb395aa76b067d321f90a257497b2
 
 ```
 
