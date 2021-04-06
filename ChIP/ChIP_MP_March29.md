@@ -1,0 +1,412 @@
+Welcome to workshop portion of today’s tutorial!
+
+This is part 2 of 3 sections towards integrating our data: ChIP-seq
+analysis
+
+For more context and details on each step look under the slides folder
+in the main repo.
+
+To start we will be heading into your local terminal.
+
+``` bash
+
+#Run in terminal
+
+scp -r YOUR_FILE_PATH USERNAME@CLUSTER:home/gradstd6/Data_Int_Files .
+
+#Folders for your intermediate outputs
+
+cd DIRECTORY_WHERE_Data_Int_Files_LIVE
+
+mkdir trimmed sam_out bam_out sort_bam filter_bam 
+```
+
+Depending on your rstudio setup, you will need to install the following
+packages for running this workshop.
+
+``` r
+if (!requireNamespace("BiocManager", quietly = TRUE))
+  install.packages("BiocManager")
+
+BiocManager::install("Rbowtie2")
+BiocManager::install("Rsamtools")
+BiocManager::install("GenomicFeatures")
+BiocManager::install("ChIPQC")
+
+#install.packages("fastqcr")
+```
+
+To start off, set your working directory, and load the packages below.
+
+``` r
+#Library ----
+
+#setwd("DIRECTORY_WHERE_Data_Int_Files_LIVE") # <-- edit this based on the directory of your choice
+
+library(Rbowtie2)
+library(Rsamtools)
+library(bedr)
+library(ChIPQC)
+library(GenomicFeatures)
+
+#library("fastqcr") # <--- may not work with windows, fastqc code and output html has been provided.
+```
+
+Some additional folders have been populated in the `scp`.
+
+The raw\_data has four fastq files (two treatment/flagged and two
+control/unflagged). The ref folder has fasta/gff files of the S.
+venezuelae genome. We have also populated the fastqc output as well as
+the MACS3 output so you don’t have to install and run that software.
+
+To run your own fastqc command code has been provided below.
+
+### First QC Step
+
+``` bash
+
+fastqc MY_RAW_DATA/*.fastq -o .
+
+scp -r USERNAME@CLUSTER:~/FASTQC_OUTPUT.html .
+```
+
+To start head to the multiqc folder and open up the .html to see the
+quality of the raw data. From the report generated it was clear that
+there was trimming to be done to remove the adapters. This is the next
+step in the pipeline.
+
+`remove_adapters()` is part of the `Rbowtie2` package and is used here
+to trim the adapters.
+
+The command requires:
+
+1.  `file` = Path to file
+2.  `adapter1` = Adapter Sequence
+3.  `output1` = Output Directory
+
+We sequentially removed the first followed by the second adapter for
+each file, that is why the input for the second trim is from the trimmed
+folder. The `--minlength` flag defines the minimum length of the read
+after trimming.
+
+#### Adapter Removal
+
+``` r
+#Reads preprocessing: trimming with RBowtie2
+
+#remove adapter 1 from flag1 file 
+remove_adapters(file1 = "raw_data/flagged_v1.fastq", 
+                adapter1 = "GATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCG", 
+                output1 = "trimmed/flagged1_adapter1")
+
+#remove adapter 2 and filter sequences less than 76nt. Essentially here we are removing all tags from the sequencing data that still contained adapters. 
+
+remove_adapters(file1 = "trimmed/flagged1_adapter1", 
+                adapter1 = "GATCGGAAGAGCACACGTCTGAACTCCAGTCACCAGATCATCTCGTATGC", 
+                output1 = "trimmed/flagged1_trimmed_filtered.fastq", "--minlength 76")
+
+#repeat for other files, etc, etc 
+remove_adapters(file1 = "raw_data/flagged_v2.fastq", 
+                adapter1 = "GATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCG", 
+                output1 = "trimmed/flagged2_adapter1")
+
+remove_adapters(file1 = "trimmed/flagged2_adapter1", 
+                adapter1 = "GATCGGAAGAGCACACGTCTGAACTCCAGTCACCAGATCATCTCGTATGC", 
+                output1 = "trimmed/flagged2_trimmed_filtered.fastq","--minlength 76")
+
+remove_adapters(file1 = "raw_data/unflagged_control1.fastq", 
+                adapter1 = "GATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCG", 
+                output1 = "trimmed/unflagged1_adapter1")
+
+remove_adapters(file1 = "trimmed/unflagged1_adapter1", 
+                adapter1 = "GATCGGAAGAGCACACGTCTGAACTCCAGTCACCAGATCATCTCGTATGC", 
+                output1 = "trimmed/unflagged1_trimmed_filtered.fastq", "--minlength 76")
+
+remove_adapters(file1 = "raw_data/unflagged_control2.fastq", 
+                adapter1 = "GATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCG",
+                output1 = "trimmed/unflagged2_adapter1")
+
+remove_adapters(file1 = "trimmed/unflagged2_adapter1", 
+                adapter1 = "GATCGGAAGAGCACACGTCTGAACTCCAGTCACCAGATCATCTCGTATGC", 
+                output1 = "trimmed/unflagged2_trimmed_filtered.fastq", "--minlength 76")
+```
+
+#### Second QC
+
+Once the reads have been trimmed, repeat the fastqc step from earlier.
+
+#### Bowtie2 alignment to reference
+
+Given the quality checks out OK, now we can align the reads to the S.
+venezuelae genome. We will use `bowtie2_build()` to generate the index
+and `bowtie2()` to generate the alignment.
+
+For the index generation you need a .fasta or .fa file that contains
+gene annotations.
+
+’build2\_build()\` takes the following arguments:
+
+1.  `references` = Reference Sequence
+2.  `bt2Index` = Directory for the .bt2 index files
+
+`bowtie2()` takes the following arguments:
+
+1.  `bt2Index` = Directory with the index file you just generated.
+2.  `samOutput` = Output directory for the aligned .sam files
+3.  `seq1` = Your file from the raw\_data directory
+4.  `seq2` = Reverse read if available
+
+``` r
+#Read mapping with RBowtie2
+
+bowtie2_build(references="ref/Sven_genome.fasta", bt2Index = "ref/venezuelae_bowtie")
+
+bowtie2(bt2Index = "ref/venezuelae_bowtie", 
+        samOutput = "sam_out/flagged1", 
+        seq1 = "trimmed/flagged1_trimmed_filtered.fastq", 
+        seq2 = NULL)
+
+bowtie2(bt2Index = "ref/venezuelae_bowtie", 
+        samOutput = "sam_out/flagged2", 
+        seq1 = "trimmed/flagged2_trimmed_filtered.fastq", 
+        seq2 = NULL)
+
+bowtie2(bt2Index = "ref/venezuelae_bowtie", 
+        samOutput = "sam_out/unflagged1", 
+        seq1 = "trimmed/unflagged1_trimmed_filtered.fastq", 
+        seq2 = NULL)
+
+bowtie2(bt2Index = "ref/venezuelae_bowtie", 
+        samOutput = "sam_out/unflagged2", 
+        seq1 = "trimmed/unflagged2_trimmed_filtered.fastq", 
+        seq2 = NULL)
+```
+
+#### Filtering and Sorting with RSamtools
+
+You can learn about the structure of .sam files
+[here](https://samtools.github.io/hts-specs/SAMv1.pdf)
+
+A .bam file is just a binary version of the .sam file you just created.
+To create .bam files we will be using the `Rsamtools` package.
+
+`asBam()` takes two arguements:
+
+1.  `file` = Your .sam file
+2.  `destination` = Destination and .bam file name
+
+``` r
+#convert SAM to BAM
+
+asBam(file = "sam_out/flagged1", destination = "bam_out/flagged_v1")
+asBam(file = "sam_out/flagged2", destination = "bam_out/flagged_v2")
+asBam(file = "sam_out/unflagged1", destination = "bam_out/unflagged_v1")
+asBam(file = "sam_out/unflagged2", destination = "bam_out/unflagged_v2")
+```
+
+Before we proceed to peak calling with `MACS3` we need to de-duplicate
+the .bam files. To do this we will sort .bam files and then filter it.
+To perform the filter we also need to make an index for the unsorted bam
+file.
+
+We will use `sortBam()`, `indexBam()` and `filterBam()`. Both
+`sortBam()` and `indexBam()` take the following arguments:
+
+1.  `file` = unsorted .bam file
+2.  `destination` = folder for sorted .bam files
+
+The `filterBam()` take the following arguments:
+
+1.  `file` = sorted bam file
+2.  `index` = bam.bai file \<– has to be in the same folder as sorted
+    file
+3.  `destination` = output file
+
+``` r
+#add filter/sort step
+
+sortBam(file = "bam_out/flagged_v1.bam", destination = "sort_bam/flagged_v1")
+sortBam(file = "bam_out/flagged_v2.bam", destination = "sort_bam/flagged_v2")
+sortBam(file = "bam_out/unflagged_v1.bam", destination = "sort_bam/unflagged_v1")
+sortBam(file = "bam_out/unflagged_v2.bam", destination = "sort_bam/unflagged_v2")
+
+indexBam("bam_out/flagged_v1.bam", "sort_bam/flagged_v1")
+indexBam("bam_out/flagged_v2.bam", "sort_bam/flagged_v2")
+indexBam("bam_out/unflagged_v1.bam", "sort_bam/unflagged_v1")
+indexBam("bam_out/unflagged_v2.bam", "sort_bam/unflagged_v2")
+
+filterBam(file = "sort_bam/flagged_v1.bam", 
+          index = "bam_out/flagged_v1.bam.bai", 
+          destination = "filter_bam/flagged1.bam")
+
+filterBam(file = "sort_bam/flagged_v2.bam", 
+          index = "bam_out/flagged_v2.bam.bai", 
+          destination = "filter_bam/flagged2.bam")
+
+filterBam(file = "sort_bam/unflagged_v1.bam", 
+          index = "bam_out/unflagged_v1.bam.bai", 
+          destination = "filter_bam/unflagged1.bam")
+
+filterBam(file = "sort_bam/unflagged_v2.bam", 
+          index = "bam_out/unflagged_v2.bam.bai",
+          destination = "filter_bam/unflagged2.bam")
+```
+
+#### Installing MACS3
+
+Early warning, this *software is not designed for Windows* users. So
+don’t bother trying the process below, it will not work. Your best bet
+is to (potentially install) use it on an external cluster if this is
+you. Bioconductor is working on an r wrapper for a package called
+`MACSr` that may or may not change this, but at the moment this is still
+under development. Keep an eye out
+[here](https://bioconductor.org/packages/devel/bioc/html/MACSr.html).
+
+For all *non-Windows users*:
+
+[Detailed Installation
+Guide](https://github.com/macs3-project/MACS/blob/master/docs/INSTALL.md)
+
+It should be noted that you need the newest version of
+[Python](https://www.python.org/downloads/) and
+[Bioconda](https://www.ddocent.com//bioconda/) installed on your local
+system to run this program.
+
+It can be tricky/time consuming to get them, you can install and run
+these in your own time, we have provided the output of this code in the
+initial `scp` under the MACS3 directory.
+
+``` python
+conda config --add channels defaults
+conda config --add channels bioconda
+conda config --add channels conda-forge
+
+conda install bwa
+
+pip install macs3
+
+#to run MACS3 its recommended you work in a virtual environment so that your home libraries don't get messed up 
+
+python3 -m venv ~/YOUR_CURRENT_PROJECT_FOLDER/VirtualEnv
+source ~/YOUR_CURRENT_PROJECT_FOLDER/VirtualEnv/bin/activate #<-- this could also be VirtualEnv/Scripts/activate
+
+#now your command should lead with something like: (VirtualEnv) (base) MeghanMacbookPro:~"
+
+cd ~/YOUR_CURRENT_PROJECT_FOLDER
+```
+
+#### Generating Counts using MACS3
+
+If you (hopefully) got through that installation process, we will now
+start calling peaks from our aligned .bam files. The `macs3` function
+actively compares the sample to the control and takes the following
+arguments:
+
+1.  `-t`/`--treatment` = Treatment file
+2.  `-c`/`--control` = Control file
+3.  `-n`/`--name` = Name of output file
+4.  `-g`/`--gsize` = Genome size (Default is 2.7e9 based on humans)
+5.  `--keep-dup` = Keeps the all tags in one location
+6.  `--mfold` =
+
+Look for full list of options
+[here](https://github.com/macs3-project/MACS/blob/master/docs/callpeak.md).
+
+``` python
+#all pairwise peak comparisons
+macs3 callpeak -t filter_bam/flagged1.bam -c filter_bam/unflagged1.bam -n MACS3/v1_v1 -g 8e6 --keep-dup all --mfold 2 100 
+
+macs3 callpeak -t filter_bam/flagged1.bam -c filter_bam/unflagged2.bam -n MACS3/v1_v2 -g 8e6 --keep-dup all --mfold 2 100 
+
+macs3 callpeak -t filter_bam/flagged2.bam -c filter_bam/unflagged1.bam -n MACS3/v2_v1 -g 8e6 --keep-dup all --mfold 2 100 
+
+macs3 callpeak -t filter_bam/flagged2.bam -c filter_bam/unflagged2.bam -n MACS3/v2_v2 -g 8e6 --keep-dup all --mfold 2 100 
+```
+
+#### Finding genes binding or closest to peak summit
+
+You can find the gene closest to each protein binding site (peak summit)
+using `bedtools`. You can
+[install](https://bedtools.readthedocs.io/en/latest/content/installation.html)
+this on your local computer. Once again it is *not available for
+Windows* so keep this in mind. You could also (install) run this on an
+external cluster if its accessible to you.
+
+`bedtools closest` takes the following arguments:
+
+1.  `-a` = MACS3 output .bed file
+2.  `-b` = .gff reference file
+3.  `-t` = reports first hit in file
+4.  `-d` = distance from peak (default is between 2 - 5)
+
+Look for full list of options
+[here](https://bedtools.readthedocs.io/en/latest/content/tools/closest.html).
+
+Function generates a text file with all the distances for each gene id.
+
+``` bash
+bedtools closest -a MACS3/v1_v1_summits.bed -b ref/s_venezuelae.gff -t first -d > MACS3/v1v1peaks_closest_features.txt
+
+bedtools closest -a MACS3/v1_v2_summits.bed -b ref/s_venezuelae.gff -t first -d > MACS3/v1v2peaks_closest_features.txt
+
+bedtools closest -a MACS3/v2_v1_summits.bed -b ref/s_venezuelae.gff -t first -d > MACS3/v2v1peaks_closest_features.txt
+
+bedtools closest -a MACS3/v2_v2_summits.bed -b ref/s_venezuelae.gff -t first -d > MACS3/v2v2peaks_closest_features.txt
+
+#while youre working in your terminal you can also combine these files into one large file (to be de-duped later)
+
+cd MACS3/ 
+
+cat v1v1peaks_closest_features.txt v1v2peaks_closest_features.txt v2v1peaks_closest_features.txt v2v2peaks_closest_features.txt > peaks_closest_combined.txt
+
+#this generates a text file with all of the gene features the peaks (ID'd from the four replicates) are closest to - Repeated for each ID (i.e. if all four pairwise comparisons identified the same gene as being closest to a peak summit, it would spit out that gene 4x)
+
+#trim the files so you only have the columns you need. I chose to only keep the gene ID and the distance the peak summit (i.e. protein binding site) is from that gene. 
+
+cut -f14,15 peaks_closest_combined.txt > peaks_closest_subset.txt
+
+scp -r USERNAME@CLUSTER:~/peaks_closest_subset.txt ~/Data_Int_Files/MACS3
+```
+
+The next step is to move back into R!
+
+Now before we do any fun integration, we have to quality check the
+peaks!
+
+For this we’ll use the `ChIPQC` package. We are providing the code here
+to run the `ChIPQC`, but the .csv file needed would be different for
+each person and might be tedious to make.
+
+It involved populating an excel sheet with paths to the different files
+you are interested in quality checking (.bam and .NarrowpPeak or .bed).
+We’ve provided the output for this dataset so you can go on without
+going to the trouble of running the code!
+
+To run `ChIPQC` you need to first create a .csv with your sample
+comditions. Have a look at the file added below for the structure for
+your own samples.
+
+The `ChIPQC()` function takes that .csv and makes it into an object that
+can be used in the `ChIPQCreport()` function that generates the report
+on the quality of the data.
+
+`ChIPQCreport()` takes the following arguments:
+
+1.  `experiment` = ChIPQC object you created with `ChIPQC()` function.
+2.  `reportName` = Name of the output file
+3.  `reportFolder` = Where your output file will live
+
+``` r
+samples <- read.csv('ChIPQC/ChIPQC.csv')
+
+chipObj <- ChIPQC(samples) 
+
+ChIPQCreport(experiment = chipObj, reportName="ChIP_QC_report", reportFolder="~/.../ChIPQC/")
+```
+
+Finally, generate `sessionInfo()` for a report on all the tools used
+today.
+
+``` r
+sessionInfo()
+```

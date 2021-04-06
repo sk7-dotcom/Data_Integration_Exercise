@@ -254,3 +254,9 @@ Finally, we will write the count data to a .csv file.
 write.csv(as.data.frame(resultsOrdered), 
           file="mutant_versus_wildtype_gene_expression_data.csv")
 ```
+
+Finally, generate ```sessionInfo()``` for a report on all the tools used today. 
+
+```r 
+sessionInfo()
+```
