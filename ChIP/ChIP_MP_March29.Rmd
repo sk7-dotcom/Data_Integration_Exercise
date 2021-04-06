@@ -41,10 +41,7 @@ if (!requireNamespace("BiocManager", quietly = TRUE))
 
 BiocManager::install("Rbowtie2")
 BiocManager::install("Rsamtools")
-BiocManager::install("GenomicFeatures")
 BiocManager::install("ChIPQC")
-
-#install.packages("fastqcr")
 ```
 
 To start off, set your working directory, and load the packages below. 
@@ -56,12 +53,7 @@ To start off, set your working directory, and load the packages below.
 
 library(Rbowtie2)
 library(Rsamtools)
-library(bedr)
 library(ChIPQC)
-library(GenomicFeatures)
-
-#library("fastqcr") # <--- may not work with windows, fastqc code and output html has been provided.
-
 ```
 
 Some additional folders have been populated in the `scp`. 
@@ -292,7 +284,7 @@ If you (hopefully) got through that installation process, we will now start call
 3. `-n`/`--name` = Name of output file
 4. `-g`/`--gsize` = Genome size (Default is 2.7e9 based on humans)
 5. `--keep-dup` = Keeps the all tags in one location
-6. `--mfold` = 
+6. `--mfold` = Fold Enrichment
 
 Look for full list of options [here](https://github.com/macs3-project/MACS/blob/master/docs/callpeak.md).
 

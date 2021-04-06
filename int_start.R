@@ -46,9 +46,9 @@ ChIP_dat <- ChIP_dat %>% mutate(geneid = as.numeric(geneid)) %>% drop_na(geneid)
 Cluster_bound = RNA_clusters %>% filter(Cluster != is.na(Cluster)) %>% select(geneid)
 
 venn.diagram(
-  x = list(EL_data$geneid, EL_chip[,1], Cluster_bound[,1]),
-  category.names = c("BGC", "RNA_seq" , "ChIP_seq"),
-  filename = 'venn_diagramm.jpg',
+  x = list(RNA_clusters$geneid, ChIP_dat$geneid),
+  category.names = c("RNA_seq" , "ChIP_seq"),
+  filename = 'RNA_CHIP.jpg',
   output=TRUE
 )
 
@@ -61,9 +61,11 @@ plot_try <- RNA_clusters %>%
 
 pdf('ChIP/Pictures/Lsr2_bind_vs_log2FC.pdf')
 
-ggplot(plot_try, aes(Lsr2_bound, log2FoldChange, color = Cluster)) + geom_jitter(size = 2, alpha = 0.5) + 
-  theme_bw() + xlab('Lsr2 Binding Status') + ylab('log2 Fold Change') + geom_hline(yintercept = 0, alpha = 0.7, color = 'red') + 
-  ylim(min = -10, max = 10)
+ggplot(plot_try, aes(Lsr2_bound, log2FoldChange)) + 
+  geom_violin()+ geom_jitter(aes(color = Cluster), size = 2, alpha = 0.5) + 
+  theme_bw() + xlab('Lsr2 Binding Status') + ylab('log2 Fold Change') + 
+  geom_hline(yintercept = 0, alpha = 0.7, color = 'red') + 
+  ylim(min = -10, max = 10) 
 
 dev.off()
   

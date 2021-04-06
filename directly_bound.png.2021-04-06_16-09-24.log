@@ -1,0 +1,15 @@
+INFO [2021-04-06 16:09:24] $x
+INFO [2021-04-06 16:09:24] list(RNA_clusters$geneid, directly_bound$geneid)
+INFO [2021-04-06 16:09:24] 
+INFO [2021-04-06 16:09:24] $category.names
+INFO [2021-04-06 16:09:24] c("RNA_seq", "ChIP_seq")
+INFO [2021-04-06 16:09:24] 
+INFO [2021-04-06 16:09:24] $filename
+INFO [2021-04-06 16:09:24] [1] "directly_bound.png"
+INFO [2021-04-06 16:09:24] 
+INFO [2021-04-06 16:09:24] $fill
+INFO [2021-04-06 16:09:24] c("light blue", "pink")
+INFO [2021-04-06 16:09:24] 
+INFO [2021-04-06 16:09:24] $output
+INFO [2021-04-06 16:09:24] [1] TRUE
+INFO [2021-04-06 16:09:24] 

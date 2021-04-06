@@ -1,29 +1,22 @@
----
-title: "Data Integration"
-author: "Sreedevi Kesavan and Meghan Peplar"
-date: "06/04/2021"
-output:
-  md_document:
-    variant: markdown_github
----
+Welcome to workshop portion of today’s tutorial!
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-Welcome to workshop portion of today's tutorial!
+This is part 3 of 3 sections towards integrating our data: Data
+Integration
 
-This is part 3 of 3 sections towards integrating our data: Data Integration
+For more context and details on each step look under the slides folder
+in the main repo.
 
-For more context and details on each step look under the slides folder in the main repo. 
-
-We will do all the analysis in R. 
-____________________________________________________________________
+We will do all the analysis in R.
+\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
 
 #### Package installation
 
-To start this analysis, we will start by calling in all the packages we will need. Install them using the code below if you have not already done so. You also want to `setwd()` again to what it was in the ChIP-analysis aspect of the workshop. 
+To start this analysis, we will start by calling in all the packages we
+will need. Install them using the code below if you have not already
+done so. You also want to `setwd()` again to what it was in the
+ChIP-analysis aspect of the workshop.
 
-```{r eval = FALSE}
+``` r
 #Packages Used ----
 
 #install.packages('tidyverse')
@@ -36,14 +29,16 @@ library(data.table)
 library(ggplot2)
 
 #setwd("DIRECTORY_WHERE_Data_Int_Files_LIVE") # <-- edit this based on the directory of your choice
-
 ```
 
-#### Data cleanup and final check 
+#### Data cleanup and final check
 
-To cleanup the output from the `Bedtools` function to just include the GeneID and the distance to the nearest gene the following code will be used. It will result in a file called ChIP_data.csv that will we continue with.
+To cleanup the output from the `Bedtools` function to just include the
+GeneID and the distance to the nearest gene the following code will be
+used. It will result in a file called ChIP\_data.csv that will we
+continue with.
 
-```{r eval = FALSE}
+``` r
 #Cleaning up ChIP-seq output ----
 
 peaks_closest_features <- read.delim("MACS3/peaks_closest_subset.txt", header = FALSE)
@@ -67,13 +62,13 @@ write.csv(dedup_closest, file = 'ChIP/ChIP_table.csv')
 
 ChIP_dat <- read.csv('ChIP/ChIP_table.csv')
 ChIP_dat <- ChIP_dat %>% mutate(geneid = as.numeric(geneid)) %>% drop_na(geneid) 
-
 ```
 
-Next, we will clean up RNA-sequencing data. Here we are turning GeneID's into a numeric type and assigning biosynthetic gene clusters to diffrentially expressed genes. 
+Next, we will clean up RNA-sequencing data. Here we are turning GeneID’s
+into a numeric type and assigning biosynthetic gene clusters to
+diffrentially expressed genes.
 
-```{r eval = FALSE}
-
+``` r
 #Cleaning up RNA-seq output ----
 
 RNA_dat <- read.csv('RNA-seq/RNA_seq_data.csv')
@@ -88,7 +83,7 @@ RNA_clusters <- RNA_dat %>%
   mutate(Cluster = case_when((ID >= 223 & ID <= 234) ~ "Ectoine",
                                (ID >= 261 & ID <= 306) ~ "Terpene1",
                                (ID >= 463 & ID <= 531) ~ "T1PKS-T3PKS-NRPS",
-                               (ID >= 540 & ID <= 561) ~ "Lantipeptide/terpene"	,
+                               (ID >= 540 & ID <= 561) ~ "Lantipeptide/terpene" ,
                                (ID >= 612 & ID <= 630) ~ "Lantipeptide(venezuelin)",
                                (ID >= 755 & ID <= 772) ~ "Indole(acryriaflavin)",
                                (ID >= 913 & ID <= 928) ~ "Chloramphenicol",
@@ -119,11 +114,11 @@ RNA_clusters <- RNA_dat %>%
 RNA_clusters <- RNA_clusters %>% rename(geneid = ID)
 ```
 
-Before proceeding to the any analysis we want to make sure that there are no missing values in the tables we just created, so the following code will assess this. 
+Before proceeding to the any analysis we want to make sure that there
+are no missing values in the tables we just created, so the following
+code will assess this.
 
-
-```{r eval = FALSE}
-
+``` r
 #Data Check ----
 
 
@@ -133,11 +128,13 @@ CHIP_data<- ChIP_dat %>% filter_all(any_vars(is.na(.))); CHIP_data
 
 #### Venn Diagram
 
-Now that we have verified there is no missing data, we will start making some plots. 
+Now that we have verified there is no missing data, we will start making
+some plots.
 
-To start our analysis we will make some Venn Diagrams that look at how many genes are both differentialy expressed and bound at or near Lsr2. 
+To start our analysis we will make some Venn Diagrams that look at how
+many genes are both differentialy expressed and bound at or near Lsr2.
 
-```{r eval = FALSE}
+``` r
 #Venn diagram ----
 
 Cluster_bound = RNA_clusters %>% filter(Cluster != is.na(Cluster)) %>% select(geneid)
@@ -170,13 +167,15 @@ venn.diagram(
 
 #### Effect of Lsr2 binding on antibiotic production
 
-Finally, we are going to do what we came here to do, integrate! 
+Finally, we are going to do what we came here to do, integrate!
 
-1. To start we are going to assign either `Bound` or `Not Bound` status to the genes that are differentialy expressed. 
+1.  To start we are going to assign either `Bound` or `Not Bound` status
+    to the genes that are differentialy expressed.
 
-2. We are then plotting this binding status against the log2 Fold Change of the genes and assigning the color variable to clusters. 
+2.  We are then plotting this binding status against the log2 Fold
+    Change of the genes and assigning the color variable to clusters.
 
-```{r eval = FALSE}
+``` r
 #Lsr2_bound or not
 
 chip_id <- ChIP_dat[,1]
@@ -190,12 +189,9 @@ ggplot(lsr2_bound, aes(Lsr2_bound, log2FoldChange, color = Cluster)) + geom_jitt
 dev.off()
 ```
 
-Finally, generate `sessionInfo()` for a report on all the tools used today. 
+Finally, generate `sessionInfo()` for a report on all the tools used
+today.
 
-```{r eval = FALSE}
-
+``` r
 sessionInfo()
-
 ```
-
-

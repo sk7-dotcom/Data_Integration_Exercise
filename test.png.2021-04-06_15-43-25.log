@@ -1,0 +1,12 @@
+INFO [2021-04-06 15:43:25] $x
+INFO [2021-04-06 15:43:25] list(RNA_clusters$geneid, test$geneid)
+INFO [2021-04-06 15:43:25] 
+INFO [2021-04-06 15:43:25] $category.names
+INFO [2021-04-06 15:43:25] c("RNA_seq", "ChIP_seq")
+INFO [2021-04-06 15:43:25] 
+INFO [2021-04-06 15:43:25] $filename
+INFO [2021-04-06 15:43:25] [1] "test.png"
+INFO [2021-04-06 15:43:25] 
+INFO [2021-04-06 15:43:25] $output
+INFO [2021-04-06 15:43:25] [1] TRUE
+INFO [2021-04-06 15:43:25] 
