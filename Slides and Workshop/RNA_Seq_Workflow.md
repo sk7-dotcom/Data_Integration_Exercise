@@ -266,7 +266,7 @@ write.csv(as.data.frame(resultsOrdered),
           file="mutant_versus_wildtype_gene_expression_data.csv")
 ```
 
-Finally, generate ```sessionInfo()``` for a report on all the tools used today. 
+In the very last step, use ```sessionInfo()``` to generate a report on all the tools used today. 
 
 ```r 
 sessionInfo()
