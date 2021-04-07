@@ -52,23 +52,35 @@ To cleanup the output from the `Bedtools` function to just include the GeneID an
 ```{r eval = FALSE}
 #Cleaning up ChIP-seq output ----
 
-peaks_closest_features <- read.delim("MACS3/peaks_closest_subset.txt", header = FALSE)
+peaks_closest_features <- read.delim("MACS3/peaks_features_subset.txt", header = FALSE)
 #the way the GFF file is constructed we have to clean it up a little to get a table we can use for further analyses
 
 tag <- c("tag1", "tag2")
-peaks_closest_features_split <- separate(peaks_closest_features, 1, tag, sep = ";")
+peaks_features_split <- separate(peaks_closest_features, 1, tag, sep = ";")
 
-colnames(peaks_closest_features_split) <- c("geneid", "name", "distance")
+colnames(peaks_features_split) <- c("geneid", "name", "distance")
 
-peaks_closest_trim <- select(peaks_closest_features_split, geneid,  distance)
+peaks_feature_trim <- select(peaks_features_split, geneid,  distance)
 
-cleaned_closest <- peaks_closest_trim %>%
+cleaned_features <- peaks_feature_trim %>%
   mutate_if(is.character, stringr::str_replace_all, pattern = 'ID=SVEN_', replacement = '')
 
 #now we have a nice table and we want to remove duplicates (if the same gene is ID'd by all four pairwise comparisons, just keep the one with greatest distance). 
 
-dedup_closest <- unique(setDT(cleaned_closest)[order(geneid, -distance)], by = "geneid")
+dedup_features <- unique(setDT(cleaned_features)[order(geneid, -distance)], by = "geneid")
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+write.csv(dedup_features, file = '~/Desktop/ChIP_table.csv')
+
+ChIP_dat <- read.csv('ChIP/ChIP_table.csv')
+ChIP_dat <- ChIP_dat %>% mutate(geneid = as.numeric(geneid)) %>% drop_na(geneid) 
+=======
+ChIP_dat <- dedup_closest %>% mutate(geneid = as.numeric(geneid)) %>% drop_na() 
+>>>>>>> 8901657b001eb395aa76b067d321f90a257497b2
+
+>>>>>>> c91f79f04b753ae155a98248fc2b1cae67c91028
 ```
 
 Next, we will clean up RNA-sequencing data. Here we are turning GeneID's into a numeric type and assigning biosynthetic gene clusters to diffrentially expressed genes. 
