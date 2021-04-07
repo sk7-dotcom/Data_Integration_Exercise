@@ -219,7 +219,7 @@ deseqdata$genotype <- factor(deseqdata$genotype, levels = c("wildtype","mutant")
 
 Next, we will pass the ```DESeqDataSet``` to ```DeSeq2``` for differential gene analysis. Output to the variable "deseqdata". Generate the results table using the function ```results()```. The results table will
 contain the associated log2 fold changes, p-values and adjusted p-values.  Note that p-values are computed using the Wald test and that the default cut-off for the adjusted p-value is
-alpha = 0.1.
+alpha = 0.1. We will be changing our alpha value to 0.05.
 
 
 ```r
@@ -227,15 +227,32 @@ alpha = 0.1.
 deseqdata <- DESeq(deseqdata)
 
 # Generate the results table
-results <- results(deseqdata)
+results <- results(deseqdata, alpha = 0.05) 
 
 # View results table in the console
 results
 ```
 
 
-We will then organize the results according to the lowest adjusted p-value.
+Next, we want to reorganize our results table! First, we will reorganize the results table to display only differentially expressed genes that have a >1 log2fold change and save the table as ```results_lfc```. Next, reorder the rows of the ```results_lfc``` table  according to adjusted p-value using the ```order()``` function, and by specifying the adjusted p-values column using ```"$"```. Save this as a new table called ```resultsOrdered```. Select the adjusted p-values of the ```resultsOrdered``` table and pass it to the function ```is.na()``` to check the adjusted p-value column for "NA" values. Output should contain: "DataFrame with 0 rows and 6 columns".
 
+
+```r
+# Subset the results table to take the absolute log2FoldChanges that are greater than 1
+results_lfc <- subset(results, abs(log2FoldChange) > 1)
+
+#Reorder the subsetted results according to the adjusted p-value
+resultsOrdered <- results_lfc[order(results_lfc$padj),]
+
+#
+resultsOrdered <- subset(resultsOrdered, padj<.05) 
+
+#View the summary of the new table resultsOrdered
+summary(resultsOrdered) 
+
+#Double-check that there are no "NAs" left in the adjusted p-value column
+resultsOrdered[is.na(resultsOrdered$padj), ] 
+```
 
 ```r
 # Reorders the results table such that the lowest adjusted p-value comes first and saves it to a variable called "resOrdered"
@@ -246,7 +263,7 @@ resultsOrdered
 ```
 
 
-Finally, we will write the count data to a .csv file.
+Finally, we will write the count data to a .csv file for later integration with downstream CHIP-sequencing analysis.
 
 
 ```r
