@@ -148,6 +148,8 @@ head(sorted_counts)
   
 ### (2) Use DESeq2 to perform differential gene expression analysis
 
+Please see here for the complete documentation for the [DESeq2](https://bioc.ism.ac.jp/packages/2.14/bioc/vignettes/DESeq2/inst/doc/beginner.pdf).
+
 #### A. Count Matrix Input
 
 First, load the library for the ```DESeq2``` package.
