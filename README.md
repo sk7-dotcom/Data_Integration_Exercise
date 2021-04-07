@@ -20,13 +20,13 @@ ______________________________________________________
 
 Streptomyces are soil-dwelling Gram-positive bacteria that have a complex multi-stage lifecycle and secondary metabolism. They specialize in antibiotic production and are the organism for todays analysis. 
 
-![](https://github.com/sk7-dotcom/Data_Integration_Exercise/blob/main/ChIP/Pictures/S_Ven.JPG)
+![](https://github.com/sk7-dotcom/Data_Integration_Exercise/blob/main/Slides_and_Workshop/Pictures/S_Ven.JPG)
 
 #### Biological question for today
 
 Antibiotic production in this bacteria is goverened by ~30 biosynthetic gene clusters. The products of these genes coordinate together to produce a specific antibiotic. Each cluster will encode: enzymes responsible for the catalysis and modification of the core antibiotic backbone, one or more gene product(s) to regulate the activity of the cluster, and resistance factors or efflux pumps to prevent cell suicide when the cluster is active. Lsr2 is a nucleoid associated protein that behaves similarly to Histone proteins in eucaryotic systems. It has the ability to bend and contort DNA to regulate gene expression. Here we investigate whether Lsr2 binding has an repressive effect on the biosynthetic clusters. 
 
-![](https://github.com/sk7-dotcom/Data_Integration_Exercise/blob/main/ChIP/Pictures/Clusters.JPG)
+![](https://github.com/sk7-dotcom/Data_Integration_Exercise/blob/main/Slides_and_Workshop/Pictures/Clusters.JPG)
 
 ### Chromatin Immunoprecipitation Sequencing (ChIP-Seq)
 
@@ -40,7 +40,7 @@ The application of next-generation sequencing (NGS) to ChIP has revealed insight
 
 ### How to ChIP
 
-![](https://github.com/sk7-dotcom/Data_Integration_Exercise/blob/main/ChIP/Pictures/chip_workflow.jpg)
+![](https://github.com/sk7-dotcom/Data_Integration_Exercise/blob/main/Slides_and_Workshop/Pictures/chip_workflow.jpg)
 
 [This](https://github.com/hbctraining/Intro-to-ChIPseq) is a page for going into more detail on the ChIP-seq analysis process. This page details the process our experiment took, but for more detail on file types and even pipelines that are run entirely in the cluster go to HBC training website above.  
 
