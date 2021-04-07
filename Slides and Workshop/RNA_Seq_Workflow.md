@@ -221,7 +221,7 @@ deseqdata$genotype <- factor(deseqdata$genotype, levels = c("wildtype","mutant")
 
 Next, we will pass the ```DESeqDataSet``` to ```DeSeq2``` for differential gene analysis. Output to the variable "deseqdata". Generate the results table using the function ```results()```. The results table will
 contain the associated log2 fold changes, p-values and adjusted p-values.  Note that p-values are computed using the Wald test and that the default cut-off for the adjusted p-value is
-alpha = 0.1. We will be changing our alpha value to 0.05.
+alpha = 0.1, which corresponds to the false discovery rate cutoff of 0.1. We will be changing our alpha value to 0.05 because we want to filter the adjusted p-values to a cut-off of 0.05.
 
 
 ```r
