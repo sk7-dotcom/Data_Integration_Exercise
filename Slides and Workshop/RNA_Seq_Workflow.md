@@ -11,7 +11,7 @@
 
 Welcome to the workshop portion of today's tutorial!
 
-This is part 1 of 3 sections towards integrating our data: RNA-seq analysis
+This is part 1 of 3 sections towards integrating our data: RNA-seq analysis.
 
 For more context and details on each step look under the slides folder in the main repo. 
 
@@ -244,7 +244,7 @@ results_lfc <- subset(results, abs(log2FoldChange) > 1)
 #Reorder the subsetted results according to the adjusted p-value
 resultsOrdered <- results_lfc[order(results_lfc$padj),]
 
-#
+#Subset the resultsOrdered table so that it contains only p-values less than 0.05
 resultsOrdered <- subset(resultsOrdered, padj<.05) 
 
 #View the summary of the new table resultsOrdered
@@ -252,14 +252,6 @@ summary(resultsOrdered)
 
 #Double-check that there are no "NAs" left in the adjusted p-value column
 resultsOrdered[is.na(resultsOrdered$padj), ] 
-```
-
-```r
-# Reorders the results table such that the lowest adjusted p-value comes first and saves it to a variable called "resOrdered"
-resultsOrdered <- results[order(results$padj),]
-
-# View reordered results in the console
-resultsOrdered
 ```
 
 
