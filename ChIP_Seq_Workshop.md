@@ -1,35 +1,24 @@
----
-title: "ChIP-seq data processing and analysis"
-date: "07/04/2021"
-author: "Meghan Peplar and Sreedevi Kesavan"
-output:
-  md_document:
-    variant: markdown_github
----
+Welcome to workshop portion of today’s tutorial!
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
+This is part 2 of 3 sections towards integrating our data: ChIP-seq
+analysis
 
-Welcome to workshop portion of today's tutorial!
+For more context and details on each step look under the slides folder
+in the main repo.
 
-This is part 2 of 3 sections towards integrating our data: ChIP-seq analysis
+To start we will be heading into your local terminal.
 
-For more context and details on each step look under the slides folder in the main repo. 
-
-To start we will be heading into your local terminal. 
-
-```{bash eval = FALSE}
+``` bash
 
 #Run in terminal
 
 <!-- scp -r YOUR_FILE_PATH USERNAME@info.mcmaster.ca:~/../gradstd6/Data_Int_Files ~/Desktop -->
-
 ```
 
-Depending on your rstudio setup, you will need to install the following packages for running this workshop. 
+Depending on your rstudio setup, you will need to install the following
+packages for running this workshop.
 
-```{r eval = FALSE}
+``` r
 # if (!requireNamespace("BiocManager", quietly = TRUE))
 #   install.packages("BiocManager")
 # 
@@ -38,9 +27,9 @@ Depending on your rstudio setup, you will need to install the following packages
 # BiocManager::install("ChIPQC")
 ```
 
-To start off, set your working directory, and load the packages below. 
+To start off, set your working directory, and load the packages below.
 
-```{r eval = FALSE}
+``` r
 #Library ----
 
 setwd("~/Desktop/Data_Int_Files") # <-- edit this based on the directory of your choice
@@ -51,48 +40,56 @@ library(Rsamtools)
 library(R.utils)
 ```
 
-Some additional folders have been populated in the `scp`. 
+Some additional folders have been populated in the `scp`.
 
-The raw_data has four fastq files (two treatment/flagged and two control/unflagged). 
-The ref folder has fasta/gff files of the S. venezuelae genome. 
-We have also populated the fastqc output as well as the MACS3 output so you don't have to install and run that software. 
+The raw\_data has four fastq files (two treatment/flagged and two
+control/unflagged). The ref folder has fasta/gff files of the S.
+venezuelae genome. We have also populated the fastqc output as well as
+the MACS3 output so you don’t have to install and run that software.
 
 To run your own fastqc command code has been provided below.
 
-### First QC Step 
+### First QC Step
 
-```{bash eval = FALSE}
+``` bash
 
 <!-- fastqc MY_RAW_DATA/*.fastq -o . -->
 
 <!-- scp -r USERNAME@CLUSTER:~/FASTQC_OUTPUT.html . -->
-
 ```
 
-We are going to first unzip our raw files because our functions don't accept fastq.gz files.
+We are going to first unzip our raw files because our functions don’t
+accept fastq.gz files.
 
-```{r eval = FALSE}
+``` r
 gunzip("raw_data/flagged_v1.fastq.gz")
 gunzip("raw_data/flagged_v2.fastq.gz")
 gunzip("raw_data/unflagged_control1.fastq.gz")
 gunzip("raw_data/unflagged_control2.fastq.gz")
 ```
 
-To start head to the fastqc folder and open up the .html to see the quality of the raw data. From the report generated it was clear that there was trimming to be done to remove the adapters. This is the next step in the pipeline. 
+To start head to the fastqc folder and open up the .html to see the
+quality of the raw data. From the report generated it was clear that
+there was trimming to be done to remove the adapters. This is the next
+step in the pipeline.
 
-`remove_adapters()` is part of the `Rbowtie2` package and is used here to trim the adapters. 
+`remove_adapters()` is part of the `Rbowtie2` package and is used here
+to trim the adapters.
 
-The command requires: 
+The command requires:
 
-1. `file` = Path to file
-2. `adapter1` = Adapter Sequence 
-3. `output1` = Output Directory
+1.  `file` = Path to file
+2.  `adapter1` = Adapter Sequence
+3.  `output1` = Output Directory
 
-We sequentially removed the first followed by the second adapter for each file, that is why the input for the second trim is from the trimmed folder. The `--minlength` flag defines the minimum length of the read after trimming. 
+We sequentially removed the first followed by the second adapter for
+each file, that is why the input for the second trim is from the trimmed
+folder. The `--minlength` flag defines the minimum length of the read
+after trimming.
 
 #### Adapter Removal
 
-```{r eval = FALSE}
+``` r
 #Reads preprocessing: trimming with RBowtie2
 
 #remove adapter 1 from flag1 file 
@@ -130,33 +127,34 @@ remove_adapters(file1 = "raw_data/unflagged_control2.fastq",
 remove_adapters(file1 = "trimmed/unflagged2_adapter1", 
                 adapter1 = "GATCGGAAGAGCACACGTCTGAACTCCAGTCACCAGATCATCTCGTATGC", 
                 output1 = "trimmed/unflagged2_trimmed_filtered.fastq", "--minlength 76")
-
 ```
 
 #### Second QC
 
-Once the reads have been trimmed, repeat the fastqc step from earlier. 
-
+Once the reads have been trimmed, repeat the fastqc step from earlier.
 
 #### Bowtie2 alignment to reference
 
-Given the quality checks out OK, now we can align the reads to the S. venezuelae genome. We will use `bowtie2_build()` to generate the index and `bowtie2()` to generate the alignment. 
+Given the quality checks out OK, now we can align the reads to the S.
+venezuelae genome. We will use `bowtie2_build()` to generate the index
+and `bowtie2()` to generate the alignment.
 
-For the index generation you need a .fasta or .fa file that contains gene annotations. 
+For the index generation you need a .fasta or .fa file that contains
+gene annotations.
 
-'build2_build()` takes the following arguments: 
+’build2\_build()\` takes the following arguments:
 
-1. `references` = Reference Sequence
-2. `bt2Index` = Directory for the .bt2 index files
+1.  `references` = Reference Sequence
+2.  `bt2Index` = Directory for the .bt2 index files
 
 `bowtie2()` takes the following arguments:
 
-1. `bt2Index` = Directory with the index file you just generated. 
-2. `samOutput` = Output directory for the aligned .sam files
-3. `seq1` = Your file from the raw_data directory 
-4. `seq2` = Reverse read if available
+1.  `bt2Index` = Directory with the index file you just generated.
+2.  `samOutput` = Output directory for the aligned .sam files
+3.  `seq1` = Your file from the raw\_data directory
+4.  `seq2` = Reverse read if available
 
-```{r eval = FALSE}
+``` r
 #Read mapping with RBowtie2
 
 bowtie2_build(references="ref/Sven_genome.fasta", bt2Index = "ref/venezuelae_bowtie")
@@ -180,47 +178,56 @@ bowtie2(bt2Index = "ref/venezuelae_bowtie",
         samOutput = "sam_out/unflagged2", 
         seq1 = "trimmed/unflagged2_trimmed_filtered.fastq", 
         seq2 = NULL)
-
 ```
 
 #### Filtering and Sorting with RSamtools
 
-You can learn about the structure of .sam files [here](https://samtools.github.io/hts-specs/SAMv1.pdf)
+You can learn about the structure of .sam files
+[here](https://samtools.github.io/hts-specs/SAMv1.pdf)
 
-A .bam file is just a binary version of the .sam file you just created. To create .bam files we will be using the `Rsamtools` package. 
+A .bam file is just a binary version of the .sam file you just created.
+To create .bam files we will be using the `Rsamtools` package.
 
 `asBam()` takes two arguements:
 
-1. `file` = Your .sam file 
-2. `destination` = Destination and .bam file name
+1.  `file` = Your .sam file
+2.  `destination` = Destination and .bam file name
 
-```{r eval = FALSE}
+``` r
 #convert SAM to BAM
 
 asBam(file = "sam_out/flagged1", destination = "bam_out/flagged_v1")
 asBam(file = "sam_out/flagged2", destination = "bam_out/flagged_v2")
 asBam(file = "sam_out/unflagged1", destination = "bam_out/unflagged_v1")
 asBam(file = "sam_out/unflagged2", destination = "bam_out/unflagged_v2")
-
 ```
 
-Before we proceed to peak calling with `MACS3` we need to de-duplicate the .bam files. To do this we will sort .bam files and then filter it. To perform the filter we also need to make an index for the unsorted bam file. 
+Before we proceed to peak calling with `MACS3` we need to de-duplicate
+the .bam files. To do this we will sort .bam files and then filter it.
+To perform the filter we also need to make an index for the unsorted bam
+file.
 
-We will use `sortBam()`, `indexBam()` and `filterBam()`. Both `sortBam()` and `indexBam()` take the following arguments: 
+We will use `sortBam()`, `indexBam()` and `filterBam()`. Both
+`sortBam()` and `indexBam()` take the following arguments:
 
-1. `file` = unsorted .bam file 
-2. `destination` = folder for sorted .bam files
+1.  `file` = unsorted .bam file
+2.  `destination` = folder for sorted .bam files
 
 The `filterBam()` take the following arguments:
 
-1. `file` = sorted bam file 
-2. `index` = bam.bai file <-- has to be in the same folder as sorted file
-3. `destination` = output file
-4. `param` = The way you would like to filter your bam files. In this example, we removed unmapped queries with `isUnmappedQuery=FALSE` and queries that map to multiple locations with `isDuplicate = FALSE`.
+1.  `file` = sorted bam file
+2.  `index` = bam.bai file \<– has to be in the same folder as sorted
+    file
+3.  `destination` = output file
+4.  `param` = The way you would like to filter your bam files. In this
+    example, we removed unmapped queries with `isUnmappedQuery=FALSE`
+    and queries that map to multiple locations with
+    `isDuplicate = FALSE`.
 
-For full list of options, look on the README.md page for the `RSamtools` manual. 
+For full list of options, look on the README.md page for the `RSamtools`
+manual.
 
-```{r eval = FALSE}
+``` r
 #add filter/sort step
 
 sortBam(file = "bam_out/flagged_v1.bam", destination = "sort_bam/flagged_v1")
@@ -265,18 +272,29 @@ filterBam(file = "sort_bam/unflagged_v2.bam",
 
 #### Installing MACS3
 
-Early warning, this *software is not designed for Windows* users. So don't bother trying the process below, it will not work. Your best bet is to (potentially install) use it on an external cluster if this is you. Bioconductor is working on an r wrapper for a package called `MACSr` that may or may not change this, but at the moment this is still under development. Keep an eye out [here](https://bioconductor.org/packages/devel/bioc/html/MACSr.html). 
+Early warning, this *software is not designed for Windows* users. So
+don’t bother trying the process below, it will not work. Your best bet
+is to (potentially install) use it on an external cluster if this is
+you. Bioconductor is working on an r wrapper for a package called
+`MACSr` that may or may not change this, but at the moment this is still
+under development. Keep an eye out
+[here](https://bioconductor.org/packages/devel/bioc/html/MACSr.html).
 
-For all *non-Windows users*: 
+For all *non-Windows users*:
 
-[Detailed Installation Guide](https://github.com/macs3-project/MACS/blob/master/docs/INSTALL.md)
+[Detailed Installation
+Guide](https://github.com/macs3-project/MACS/blob/master/docs/INSTALL.md)
 
-It should be noted that you need the newest version of [Python](https://www.python.org/downloads/) and [Bioconda](https://www.ddocent.com//bioconda/) installed on your local system to run this program. 
+It should be noted that you need the newest version of
+[Python](https://www.python.org/downloads/) and
+[Bioconda](https://www.ddocent.com//bioconda/) installed on your local
+system to run this program.
 
-It can be tricky/time consuming to get them, you can install and run these in your own time, we have provided the output of this code in the initial `scp` under the MACS3 directory. 
+It can be tricky/time consuming to get them, you can install and run
+these in your own time, we have provided the output of this code in the
+initial `scp` under the MACS3 directory.
 
-```{python eval = FALSE}
-
+``` python
 conda config --add channels defaults
 conda config --add channels bioconda
 conda config --add channels conda-forge
@@ -297,19 +315,23 @@ cd ~/YOUR_CURRENT_PROJECT_FOLDER
 
 #### Generating Counts using MACS3
 
-If you (hopefully) got through that installation process, we will now start calling peaks from our aligned .bam files. The `macs3` function actively compares the sample to the control and takes the following arguments:
+If you (hopefully) got through that installation process, we will now
+start calling peaks from our aligned .bam files. The `macs3` function
+actively compares the sample to the control and takes the following
+arguments:
 
-1. `-t`/`--treatment` = Treatment file 
-2. `-c`/`--control` = Control file
-3. `-n`/`--name` = Name of output file
-4. `-g`/`--gsize` = Effective genome size (Default is 2.7e9 based on humans) # -> portion of the genome that has mappable genes
-5. `--keep-dup` = Keeps the all tags in one location
-6. `--mfold` = Fold Enrichment
+1.  `-t`/`--treatment` = Treatment file
+2.  `-c`/`--control` = Control file
+3.  `-n`/`--name` = Name of output file
+4.  `-g`/`--gsize` = Effective genome size (Default is 2.7e9 based on
+    humans) \# -\> portion of the genome that has mappable genes
+5.  `--keep-dup` = Keeps the all tags in one location
+6.  `--mfold` = Fold Enrichment
 
-Look for full list of options [here](https://github.com/macs3-project/MACS/blob/master/docs/callpeak.md).
+Look for full list of options
+[here](https://github.com/macs3-project/MACS/blob/master/docs/callpeak.md).
 
-```{python eval = FALSE}
-
+``` python
 #all pairwise peak comparisons
 macs3 callpeak -t filter_bam/flagged1.bam -c filter_bam/unflagged1.bam -n MACS3/v1_v1 -g 8e6 --keep-dup all --mfold 2 100 
 
@@ -318,25 +340,30 @@ macs3 callpeak -t filter_bam/flagged1.bam -c filter_bam/unflagged2.bam -n MACS3/
 macs3 callpeak -t filter_bam/flagged2.bam -c filter_bam/unflagged1.bam -n MACS3/v2_v1 -g 8e6 --keep-dup all --mfold 2 100 
 
 macs3 callpeak -t filter_bam/flagged2.bam -c filter_bam/unflagged2.bam -n MACS3/v2_v2 -g 8e6 --keep-dup all --mfold 2 100 
-
 ```
 
 #### Finding genes binding or closest to peak summit
 
-You can find the gene closest to each protein binding site (peak summit) using `bedtools`. You can [install](https://bedtools.readthedocs.io/en/latest/content/installation.html) this on your local computer. Once again it is *not available for Windows* so keep this in mind. You could also (install) run this on an external cluster if its accessible to you. 
+You can find the gene closest to each protein binding site (peak summit)
+using `bedtools`. You can
+[install](https://bedtools.readthedocs.io/en/latest/content/installation.html)
+this on your local computer. Once again it is *not available for
+Windows* so keep this in mind. You could also (install) run this on an
+external cluster if its accessible to you.
 
-`bedtools closest` takes the following arguments: 
+`bedtools closest` takes the following arguments:
 
-1. `-a` = MACS3 output .bed file
-2. `-b` = .gff reference file
-3. `-t` = reports first hit in file 
-4. `-d` = output the distance 
+1.  `-a` = MACS3 output .bed file
+2.  `-b` = .gff reference file
+3.  `-t` = reports first hit in file
+4.  `-d` = output the distance
 
-Look for full list of options [here](https://bedtools.readthedocs.io/en/latest/content/tools/closest.html).
+Look for full list of options
+[here](https://bedtools.readthedocs.io/en/latest/content/tools/closest.html).
 
 Function generates a text file with all the distances for each gene id.
 
-```{bash eval = FALSE}
+``` bash
 bedtools closest -a MACS3/v1_v1_summits.bed -b ref/s_venezuelae.gff -d > MACS3/v1v1peaks_bound_upstream_features.txt
 
 bedtools closest -a MACS3/v1_v2_summits.bed -b ref/s_venezuelae.gff -d > MACS3/v1v2peaks_bound_upstream_features.txt
@@ -358,45 +385,47 @@ cat v1v1peaks_bound_upstream_features.txt v1v2peaks_bound_upstream_features.txt 
 cut -f14,15 peaks_features_combined.txt > peaks_features_subset.txt
 
 scp -r USERNAME@CLUSTER:~/peaks_closest_subset.txt ~/Data_Int_Files/MACS3
-
 ```
-The next step is to move back into R! 
 
-Now before we do any fun integration, we have to quality check the peaks! 
+The next step is to move back into R!
 
-For this we'll use the `ChIPQC` package. We are providing the code here to run the `ChIPQC`, but the .csv file needed would be different for each person and might be tedious to make. 
+Now before we do any fun integration, we have to quality check the
+peaks!
 
-It involved populating an excel sheet with paths to the different files you are interested in quality checking (.bam and .NarrowpPeak or .bed). We've provided the output for this dataset so you can go on without going to the trouble of running the code! 
+For this we’ll use the `ChIPQC` package. We are providing the code here
+to run the `ChIPQC`, but the .csv file needed would be different for
+each person and might be tedious to make.
 
-To run `ChIPQC` you need to first create a .csv with your sample comditions. Have a look at the file added below for the structure for your own samples. 
+It involved populating an excel sheet with paths to the different files
+you are interested in quality checking (.bam and .NarrowpPeak or .bed).
+We’ve provided the output for this dataset so you can go on without
+going to the trouble of running the code!
 
-The `ChIPQC()` function takes that .csv and makes it into an object that can be used in the `ChIPQCreport()` function that generates the report on the quality of the data. 
+To run `ChIPQC` you need to first create a .csv with your sample
+comditions. Have a look at the file added below for the structure for
+your own samples.
 
-`ChIPQCreport()` takes the following arguments: 
+The `ChIPQC()` function takes that .csv and makes it into an object that
+can be used in the `ChIPQCreport()` function that generates the report
+on the quality of the data.
 
-1. `experiment` = ChIPQC object you created with `ChIPQC()` function.
-2. `reportName` = Name of the output file 
-3. `reportFolder` = Where your output file will live
+`ChIPQCreport()` takes the following arguments:
 
-```{r eval = FALSE}
+1.  `experiment` = ChIPQC object you created with `ChIPQC()` function.
+2.  `reportName` = Name of the output file
+3.  `reportFolder` = Where your output file will live
+
+``` r
 samples <- read.csv('ChIPQC/ChIPQC.csv')
 
 chipObj <- ChIPQC(samples) 
 
 ChIPQCreport(experiment = chipObj, reportName="ChIP_QC_report", reportFolder="ChIPQC/")
-
 ```
 
-Finally, generate `sessionInfo()` for a report on all the tools used today. 
+Finally, generate `sessionInfo()` for a report on all the tools used
+today.
 
-```{r eval = FALSE}
+``` r
 sessionInfo()
 ```
-
-
-
-
-
-
-
-
