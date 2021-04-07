@@ -11,7 +11,7 @@
 
 Welcome to the workshop portion of today's tutorial!
 
-This is part 1 of 3 sections towards integrating our data: RNA-seq analysis.
+This is part 1 of 3 sections towards integrating our data: RNA-seq analysis
 
 For more context and details on each step look under the slides folder in the main repo. 
 
@@ -148,8 +148,6 @@ head(sorted_counts)
   
 ### (2) Use DESeq2 to perform differential gene expression analysis
 
-Please see here for the [DESeq2](https://bioc.ism.ac.jp/packages/2.14/bioc/vignettes/DESeq2/inst/doc/beginner.pdf) documentation and follow installation instructions if not already installed.
-
 #### A. Count Matrix Input
 
 First, load the library for the ```DESeq2``` package.
@@ -221,7 +219,7 @@ deseqdata$genotype <- factor(deseqdata$genotype, levels = c("wildtype","mutant")
 
 Next, we will pass the ```DESeqDataSet``` to ```DeSeq2``` for differential gene analysis. Output to the variable "deseqdata". Generate the results table using the function ```results()```. The results table will
 contain the associated log2 fold changes, p-values and adjusted p-values.  Note that p-values are computed using the Wald test and that the default cut-off for the adjusted p-value is
-alpha = 0.1, which corresponds to the false discovery rate cutoff of 0.1. We will be changing our alpha value to 0.05 because we want to filter the adjusted p-values to a cut-off of 0.05.
+alpha = 0.1.
 
 
 ```r
@@ -229,35 +227,26 @@ alpha = 0.1, which corresponds to the false discovery rate cutoff of 0.1. We wil
 deseqdata <- DESeq(deseqdata)
 
 # Generate the results table
-results <- results(deseqdata, alpha = 0.05) 
+results <- results(deseqdata)
 
 # View results table in the console
 results
 ```
 
 
-Next, we want to reorganize our results table! First, we will reorganize the results table to display only differentially expressed genes that have a >1 log2fold change and save the table as ```results_lfc```. Next, reorder the rows of the ```results_lfc``` table  according to adjusted p-value using the ```order()``` function, and by specifying the adjusted p-values column using ```"$"```. Save this as a new table called ```resultsOrdered```. Select the adjusted p-values of the ```resultsOrdered``` table and pass it to the function ```is.na()``` to check the adjusted p-value column for "NA" values. Output should contain: "DataFrame with 0 rows and 6 columns".
+We will then organize the results according to the lowest adjusted p-value.
 
 
 ```r
-# Subset the results table to take the absolute log2FoldChanges that are greater than 1
-results_lfc <- subset(results, abs(log2FoldChange) > 1)
+# Reorders the results table such that the lowest adjusted p-value comes first and saves it to a variable called "resOrdered"
+resultsOrdered <- results[order(results$padj),]
 
-#Reorder the subsetted results according to the adjusted p-value
-resultsOrdered <- results_lfc[order(results_lfc$padj),]
-
-#Subset the resultsOrdered table so that it contains only p-values less than 0.05
-resultsOrdered <- subset(resultsOrdered, padj<.05) 
-
-#View the summary of the new table resultsOrdered
-summary(resultsOrdered) 
-
-#Double-check that there are no "NAs" left in the adjusted p-value column
-resultsOrdered[is.na(resultsOrdered$padj), ] 
+# View reordered results in the console
+resultsOrdered
 ```
 
 
-Finally, we will write the data to a .csv file for later integration with downstream CHIP-sequencing analysis.
+Finally, we will write the count data to a .csv file.
 
 
 ```r
@@ -266,19 +255,8 @@ write.csv(as.data.frame(resultsOrdered),
           file="mutant_versus_wildtype_gene_expression_data.csv")
 ```
 
-In the very last step, use ```sessionInfo()``` to generate a report on all the tools used today. 
+Finally, generate ```sessionInfo()``` for a report on all the tools used today. 
 
 ```r 
 sessionInfo()
 ```
-### References
-1. Liao Y, Smyth GK and Shi W (2019). The R package Rsubread is easier, faster,
-cheaper and better for alignment and quantification of RNA sequencing reads.
-Nucleic Acids Research, 47(8):e47.
-2. Paradis E, Schliep K (2019). “ape 5.0: an environment for modern phylogenetics and evolutionary analyses in R.” Bioinformatics, 35, 526-528.
-http://www.ncbi.nlm.nih.gov/pubmed/30783653
-3.  M. I. Love, W. Huber, S. Anders: Moderated estimation of
-fold change and dispersion for RNA-Seq data with DESeq2.
-bioRxiv (2014). doi:10.1101/002832
-4. Liao Y, Smyth GK and Shi W (2014). featureCounts: an efficient general purpose program for assigning sequence reads to genomic features. Bioinformatics,
-30(7):923-30. http://www.ncbi.nlm.nih.gov/pubmed/24227677
