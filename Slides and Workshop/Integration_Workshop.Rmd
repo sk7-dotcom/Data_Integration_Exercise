@@ -17,6 +17,7 @@ This is part 3 of 3 sections towards integrating our data: Data Integration
 For more context and details on each step look under the slides folder in the main repo. 
 
 We will do all the analysis in R. 
+
 ____________________________________________________________________
 
 #### Package installation
@@ -29,13 +30,18 @@ To start this analysis, we will start by calling in all the packages we will nee
 #install.packages('tidyverse')
 #install.packages('VennDiagram')
 #install.packages('data.table')
+#install.packages('dplyr')
+#install.packages('tidyr')
+#install.packages('ggplot2')
 
 library(tidyverse)
+library(tidyr)
+library(dplyr)
 library(VennDiagram)
 library(data.table)
 library(ggplot2)
 
-#setwd("DIRECTORY_WHERE_Data_Int_Files_LIVE") # <-- edit this based on the directory of your choice
+# setwd("~/Desktop/Data_Int_Files") # <-- edit this based on the directory of your choice
 
 ```
 
@@ -63,8 +69,6 @@ cleaned_closest <- peaks_closest_trim %>%
 
 dedup_closest <- unique(setDT(cleaned_closest)[order(geneid, -distance)], by = "geneid")
 
-ChIP_dat <- dedup_closest %>% mutate(geneid = as.numeric(geneid)) %>% drop_na() 
-
 ```
 
 Next, we will clean up RNA-sequencing data. Here we are turning GeneID's into a numeric type and assigning biosynthetic gene clusters to diffrentially expressed genes. 
@@ -73,8 +77,10 @@ Next, we will clean up RNA-sequencing data. Here we are turning GeneID's into a 
 
 #Cleaning up RNA-seq output ----
 
-RNA_dat <- read.csv('RNA-seq/RNA_seq_data.csv')
+ChIP_dat <- read.csv('~/BIOLOGY722/Data_Integration_Exercise/ChIP/ChIP_table_NEW.csv')
+RNA_dat <- read.csv('~/BIOLOGY722/Data_Integration_Exercise/RNA-seq/RNA_seq_data.csv')
 RNA_dat <- RNA_dat %>% rename(ID = X)
+ChIP_dat <- ChIP_dat %>% rename(ID = geneid)
 
 #removing 'SVEN' from geneid
 RNA_dat <- RNA_dat %>%
@@ -123,7 +129,6 @@ Before proceeding to the any analysis we want to make sure that there are no mis
 
 #Data Check ----
 
-
 RNA_data<- RNA_dat %>% filter_all(any_vars(is.na(.))); RNA_data
 CHIP_data<- ChIP_dat %>% filter_all(any_vars(is.na(.))); CHIP_data
 ```
@@ -145,15 +150,16 @@ directly_bound <- ChIP_dat %>% filter(distance == 0)
 
 venn.diagram(
   x = list(RNA_clusters$geneid, directly_bound$geneid),
-  category.names = c("RNA_seq" , "ChIP_seq"),
+  category.names = c("RNA_seq", "ChIP_seq"),
   filename = 'directly_bound.png',
   fill= c ("light blue", "pink"),
-  output=TRUE)
+  output=TRUE
+)
 
 venn.diagram(
   x = list(RNA_clusters$geneid, closest_100$geneid),
   category.names = c("RNA_seq" , "ChIP_seq"),
-  filename = 'Pictures/closest_100.png',
+  filename = 'closest_100.png',
   fill= c ("light blue", "pink"),
   output=TRUE)
 
@@ -161,7 +167,7 @@ venn.diagram(
   x = list(Cluster_bound[,1], RNA_clusters$geneid, closest_100$geneid),
   category.names = c("BGC", "RNA_seq" , "ChIP_seq"),
   filename = 'All_overlap.png',
-  fill= c ("light blue", "pink", "mediumorchid"),
+  fill= c ("mediumorchid", "light blue", "pink"),
   output=TRUE)
 ```
 
@@ -176,14 +182,13 @@ Finally, we are going to do what we came here to do, integrate!
 ```{r eval = FALSE}
 #Lsr2_bound or not
 
-chip_id <- ChIP_dat[,1]
+chip_id <- ChIP_dat[,2]
 
 lsr2_bound <- RNA_clusters %>% 
   mutate(Lsr2_bound = case_when(geneid %in% chip_id ~ "Bound", TRUE ~ "Not Bound"))
 
-pdf('Pictures/Lsr2_bind_vs_log2FC.pdf')
-ggplot(lsr2_bound, aes(Lsr2_bound, log2FoldChange, color = Cluster)) + geom_jitter(size = 2, alpha = 0.5) + 
-  theme_bw() + xlab('Lsr2 Binding Status') + ylab('log2 Fold Change') + geom_hline(yintercept = 0, alpha = 0.7, color = 'red') + ylim(min = -10, max = 10)
+pdf('Lsr2_bind_vs_log2FC.pdf')
+ggplot(lsr2_bound, aes(Lsr2_bound, log2FoldChange)) + geom_violin() + geom_jitter(aes(color = Cluster), size = 2, alpha = 0.5) + theme_bw() + xlab('Lsr2 Binding Status') + ylab('log2 Fold Change') + geom_hline(yintercept = 0, alpha = 0.7, color = 'red') + ylim(min = -10, max = 10) 
 dev.off()
 ```
 

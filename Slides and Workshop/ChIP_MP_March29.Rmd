@@ -23,25 +23,19 @@ To start we will be heading into your local terminal.
 
 #Run in terminal
 
-scp -r YOUR_FILE_PATH USERNAME@CLUSTER:home/gradstd6/Data_Int_Files .
-
-#Folders for your intermediate outputs
-
-cd DIRECTORY_WHERE_Data_Int_Files_LIVE
-
-mkdir trimmed sam_out bam_out sort_bam filter_bam 
+<!-- scp -r YOUR_FILE_PATH USERNAME@CLUSTER:~/../gradstd6/Data_Int_Files ~/Desktop -->
 
 ```
 
 Depending on your rstudio setup, you will need to install the following packages for running this workshop. 
 
 ```{r eval = FALSE}
-if (!requireNamespace("BiocManager", quietly = TRUE))
-  install.packages("BiocManager")
-
-BiocManager::install("Rbowtie2")
-BiocManager::install("Rsamtools")
-BiocManager::install("ChIPQC")
+# if (!requireNamespace("BiocManager", quietly = TRUE))
+#   install.packages("BiocManager")
+# 
+# BiocManager::install("Rbowtie2")
+# BiocManager::install("Rsamtools")
+# BiocManager::install("ChIPQC")
 ```
 
 To start off, set your working directory, and load the packages below. 
@@ -49,11 +43,12 @@ To start off, set your working directory, and load the packages below.
 ```{r eval = FALSE}
 #Library ----
 
-#setwd("DIRECTORY_WHERE_Data_Int_Files_LIVE") # <-- edit this based on the directory of your choice
+setwd("~/Desktop/Data_Int_Files") # <-- edit this based on the directory of your choice
 
 library(Rbowtie2)
 library(Rsamtools)
 library(ChIPQC)
+library(R.utils)
 ```
 
 Some additional folders have been populated in the `scp`. 
@@ -68,13 +63,22 @@ To run your own fastqc command code has been provided below.
 
 ```{bash eval = FALSE}
 
-fastqc MY_RAW_DATA/*.fastq -o .
+<!-- fastqc MY_RAW_DATA/*.fastq -o . -->
 
-scp -r USERNAME@CLUSTER:~/FASTQC_OUTPUT.html .
+<!-- scp -r USERNAME@CLUSTER:~/FASTQC_OUTPUT.html . -->
 
 ```
 
-To start head to the multiqc folder and open up the .html to see the quality of the raw data. From the report generated it was clear that there was trimming to be done to remove the adapters. This is the next step in the pipeline. 
+We are going to first unzip our raw files because our functions don't accept fastq.gz files.
+
+```{r}
+gunzip("raw_data/flagged_v1.fastq.gz")
+gunzip("raw_data/flagged_v2.fastq.gz")
+gunzip("raw_data/unflagged_control1.fastq.gz")
+gunzip("raw_data/unflagged_control2.fastq.gz")
+```
+
+To start head to the fastqc folder and open up the .html to see the quality of the raw data. From the report generated it was clear that there was trimming to be done to remove the adapters. This is the next step in the pipeline. 
 
 `remove_adapters()` is part of the `Rbowtie2` package and is used here to trim the adapters. 
 
@@ -282,7 +286,7 @@ If you (hopefully) got through that installation process, we will now start call
 1. `-t`/`--treatment` = Treatment file 
 2. `-c`/`--control` = Control file
 3. `-n`/`--name` = Name of output file
-4. `-g`/`--gsize` = Genome size (Default is 2.7e9 based on humans)
+4. `-g`/`--gsize` = Effective genome size (Default is 2.7e9 based on humans) # -> portion of the genome that has mappable genes
 5. `--keep-dup` = Keeps the all tags in one location
 6. `--mfold` = Fold Enrichment
 
@@ -310,7 +314,7 @@ You can find the gene closest to each protein binding site (peak summit) using `
 1. `-a` = MACS3 output .bed file
 2. `-b` = .gff reference file
 3. `-t` = reports first hit in file 
-4. `-d` = distance from peak (default is between 2 - 5)
+4. `-d` = output the distance 
 
 Look for full list of options [here](https://bedtools.readthedocs.io/en/latest/content/tools/closest.html).
 
@@ -363,7 +367,7 @@ samples <- read.csv('ChIPQC/ChIPQC.csv')
 
 chipObj <- ChIPQC(samples) 
 
-ChIPQCreport(experiment = chipObj, reportName="ChIP_QC_report", reportFolder="~/.../ChIPQC/")
+ChIPQCreport(experiment = chipObj, reportName="ChIP_QC_report", reportFolder="ChIPQC/")
 
 ```
 
