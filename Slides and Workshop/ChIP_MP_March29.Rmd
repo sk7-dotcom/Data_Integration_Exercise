@@ -47,7 +47,7 @@ setwd("~/Desktop/Data_Int_Files") # <-- edit this based on the directory of your
 
 library(Rbowtie2)
 library(Rsamtools)
-library(ChIPQC)
+#library(ChIPQC)
 library(R.utils)
 ```
 
@@ -216,6 +216,9 @@ The `filterBam()` take the following arguments:
 1. `file` = sorted bam file 
 2. `index` = bam.bai file <-- has to be in the same folder as sorted file
 3. `destination` = output file
+4. `param` = The way you would like to filter your bam files. In this example, we removed unmapped queries with `isUnmappedQuery=FALSE` and queries that map to multiple locations with `isDuplicate = FALSE`.
+
+For full list of options, look on the README.md page for the `RSamtools` manual. 
 
 ```{r eval = FALSE}
 #add filter/sort step
@@ -232,19 +235,32 @@ indexBam("bam_out/unflagged_v2.bam", "sort_bam/unflagged_v2")
 
 filterBam(file = "sort_bam/flagged_v1.bam", 
           index = "bam_out/flagged_v1.bam.bai", 
-          destination = "filter_bam/flagged1.bam")
+          destination = "filter_bam/flagged1.bam",
+          param = ScanBamParam(flag=scanBamFlag(isUnmappedQuery=FALSE, 
+                                                isDuplicate = FALSE),
+                               what="seq")))
+
 
 filterBam(file = "sort_bam/flagged_v2.bam", 
           index = "bam_out/flagged_v2.bam.bai", 
-          destination = "filter_bam/flagged2.bam")
+          destination = "filter_bam/flagged2.bam", 
+          param = ScanBamParam(flag=scanBamFlag(isUnmappedQuery=FALSE, 
+                                                isDuplicate = FALSE),
+                               what="seq")))
 
 filterBam(file = "sort_bam/unflagged_v1.bam", 
           index = "bam_out/unflagged_v1.bam.bai", 
-          destination = "filter_bam/unflagged1.bam")
+          destination = "filter_bam/unflagged1.bam",
+          param = ScanBamParam(flag=scanBamFlag(isUnmappedQuery=FALSE, 
+                                                isDuplicate = FALSE),
+                               what="seq"))))
 
 filterBam(file = "sort_bam/unflagged_v2.bam", 
           index = "bam_out/unflagged_v2.bam.bai",
-          destination = "filter_bam/unflagged2.bam")
+          destination = "filter_bam/unflagged2.bam", 
+          param = ScanBamParam(flag=scanBamFlag(isUnmappedQuery=FALSE, 
+                                                isDuplicate = FALSE),
+                               what="seq"))))
 ```
 
 #### Installing MACS3
