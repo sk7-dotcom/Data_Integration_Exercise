@@ -69,18 +69,7 @@ cleaned_features <- peaks_feature_trim %>%
 
 dedup_features <- unique(setDT(cleaned_features)[order(geneid, -distance)], by = "geneid")
 
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-write.csv(dedup_features, file = '~/Desktop/ChIP_table.csv')
-
-ChIP_dat <- read.csv('ChIP/ChIP_table.csv')
-ChIP_dat <- ChIP_dat %>% mutate(geneid = as.numeric(geneid)) %>% drop_na(geneid) 
-=======
-ChIP_dat <- dedup_closest %>% mutate(geneid = as.numeric(geneid)) %>% drop_na() 
->>>>>>> 8901657b001eb395aa76b067d321f90a257497b2
-
->>>>>>> c91f79f04b753ae155a98248fc2b1cae67c91028
+dedup_closest %>% mutate(geneid = as.numeric(geneid)) %>% drop_na() 
 ```
 
 Next, we will clean up RNA-sequencing data. Here we are turning GeneID's into a numeric type and assigning biosynthetic gene clusters to diffrentially expressed genes. 
