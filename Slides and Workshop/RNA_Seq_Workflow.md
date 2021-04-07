@@ -271,3 +271,14 @@ Finally, generate ```sessionInfo()``` for a report on all the tools used today.
 ```r 
 sessionInfo()
 ```
+### References
+1. Liao Y, Smyth GK and Shi W (2019). The R package Rsubread is easier, faster,
+cheaper and better for alignment and quantification of RNA sequencing reads.
+Nucleic Acids Research, 47(8):e47.
+2. Paradis E, Schliep K (2019). “ape 5.0: an environment for modern phylogenetics and evolutionary analyses in R.” Bioinformatics, 35, 526-528.
+http://www.ncbi.nlm.nih.gov/pubmed/30783653
+3.  M. I. Love, W. Huber, S. Anders: Moderated estimation of
+fold change and dispersion for RNA-Seq data with DESeq2.
+bioRxiv (2014). doi:10.1101/002832
+4. Liao Y, Smyth GK and Shi W (2014). featureCounts: an efficient general purpose program for assigning sequence reads to genomic features. Bioinformatics,
+30(7):923-30. http://www.ncbi.nlm.nih.gov/pubmed/24227677
