@@ -255,7 +255,7 @@ resultsOrdered[is.na(resultsOrdered$padj), ]
 ```
 
 
-Finally, we will write the count data to a .csv file for later integration with downstream CHIP-sequencing analysis.
+Finally, we will write the data to a .csv file for later integration with downstream CHIP-sequencing analysis.
 
 
 ```r
